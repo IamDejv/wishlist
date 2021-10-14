@@ -1,0 +1,11 @@
+parameters:
+	storage:
+		firebase: %appDir%/../data/firebase
+
+
+services:
+	firebaseFactory: Kreait\Firebase\Factory()::withServiceAccount(%storage.firebase%/firebase_credentials.json)
+
+	firebaseAuthenticator: @firebaseFactory::createAuth()
+
+	firebaseMessaging: @firebaseFactory::createMessaging()

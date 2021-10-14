@@ -1,0 +1,22 @@
+#!/bin/bash
+
+path_to_script_directory="$(dirname "$0")";
+cd "$path_to_script_directory/..";
+
+
+echo "drop database if exists wish; create database wish;" | mysql -uroot -prootpasswd --host="db";
+
+bin/console migrations:migrate --no-interaction
+
+if [ -f ./db/db_dump.sql ]; then
+    echo "Importing DB dump to devapp..."
+    cat ./db/db_dump.sql | mysql -uroot -prootpasswd --host="db" wish;
+fi
+
+if [ ! -d "./temp" ]; then
+    mkdir -p ./temp;
+else
+    rm -rf ./temp/*;
+fi
+
+chmod -R 0777 ./temp;

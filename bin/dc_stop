@@ -1,0 +1,10 @@
+#!/bin/bash
+
+
+path_to_script_directory="$(dirname "$0")";
+cd "$path_to_script_directory";
+
+rm -rf ./app/config/.run-in-docker;
+
+cd "../docker";
+docker-compose stop;

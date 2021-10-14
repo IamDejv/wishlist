@@ -1,0 +1,78 @@
+version: '3.7'
+services:
+  nginx:
+    image: nginx:1.15.12
+    container_name: wish-nginx
+    environment:
+      - TERM=xterm-256color
+    ports:
+      - "88:80"
+      - "444:443"
+    volumes:
+      - ./nginx/pages/:/etc/nginx/conf.d/
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl/:/etc/nginx/ssl/
+      - ./../:/app/
+    links:
+      - api:phpfpm
+    tmpfs:
+      - /tmp
+    networks:
+      - wish-net
+
+  api:
+    build: php-fpm
+    container_name: wish-php
+    environment:
+      - TERM=xterm-256color
+    volumes:
+      - ./../:/app/
+    links:
+      - db:db
+    tmpfs:
+      - /tmp
+    networks:
+      - wish-net
+
+  db:
+    image: mariadb:10.6
+    container_name: wish-db
+    restart: always
+    environment:
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_PASSWORD: rootpasswd
+      MYSQL_USER: root
+      MYSQL_PASSWORD: rootpasswd
+      MYSQL_DATABASE: wishlist
+      MYSQL_INITDB_SKIP_TZINFO: 1
+    command:
+      - --character-set-server=utf8
+      - --collation-server=utf8_czech_ci
+    volumes:
+      - ./mariadb/data/:/var/dump/
+    ports:
+      - "3307:3306"
+    tmpfs:
+      - /tmp
+    networks:
+      - wish-net
+
+  adminer:
+    image: adminer:4.7.1
+    container_name: wish-adminer
+    environment:
+      - TERM=xterm-256color
+      - ADMINER_DESIGN=nette
+    ports:
+      - "8081:8080"
+    links:
+      - db:db
+    tmpfs:
+      - /tmp
+    networks:
+      - wish-net
+
+networks:
+  wish-net:
+    name: wish-net
+

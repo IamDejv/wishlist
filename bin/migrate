@@ -1,0 +1,14 @@
+#!/bin/bash
+
+path_to_script_directory="$(dirname "$0")";
+cd "$path_to_script_directory/..";
+
+bin/console migrations:migrate --no-interaction
+
+if [ ! -d "./temp" ]; then
+    mkdir -p ./temp;
+else
+    rm -rf ./temp/*;
+fi
+
+chmod -R 0777 ./log ./temp;

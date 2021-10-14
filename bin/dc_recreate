@@ -1,0 +1,19 @@
+#!/bin/bash
+
+
+path_to_script_directory="$(dirname "$0")";
+cd "$path_to_script_directory";
+
+rm -rf ./app/config/.run-in-docker;
+
+cd "../docker";
+
+docker-compose down -v;
+docker-compose rm -f;
+docker-compose up -d --force-recreate --build;
+
+touch ./../app/config/.run-in-docker;
+
+cd "../bin";
+./dc_database
+./dc_exec "chmod 0777 -R /app/vendor";

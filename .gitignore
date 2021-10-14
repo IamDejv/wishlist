@@ -1,0 +1,85 @@
+log/*
+
+!log/.htaccess
+temp/*
+
+vendor/*
+assets/bower/*
+assets/node_modules/*
+www/webtemp/*
+www/app/*
+storage/*
+App/config/instance-config.neon
+App/Test/Unit/temp
+
+
+# Created by https://www.gitignore.io/api/nette,phpstorm
+
+### Nette ###
+# Nette - http://nette.org
+# Ignore /log and /temp directories content but commit .htaccess settings
+/log/*
+!/log/.htaccess
+/temp/*
+!/temp/.htaccess
+
+
+### PhpStorm ###
+# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and Webstorm
+# Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
+
+.idea/*
+
+# User-specific stuff:
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries
+.idea/vcs.xml
+.idea/jsLibraryMappings.xml
+.idea/.name
+.idea/modules.xml
+
+# Sensitive or high-churn files:
+.idea/dataSources.ids
+.idea/dataSources.xml
+.idea/dataSources.local.xml
+.idea/sqlDataSources.xml
+.idea/dynamic.xml
+.idea/uiDesigner.xml
+
+# Gradle:
+.idea/gradle.xml
+.idea/libraries
+
+# Mongo Explorer plugin:
+.idea/mongoSettings.xml
+
+## File-based project format:
+*.iws
+
+## Plugin-specific files:
+
+# IntelliJ
+/out/
+
+# mpeltonen/sbt-idea plugin
+.idea_modules/
+
+# JIRA plugin
+atlassian-ide-plugin.xml
+
+# Crashlytics plugin (for Android Studio and IntelliJ)
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
+Tests/Unit/temp*
+www/build/*
+www/images/products/*
+
+# Project settings
+
+app/config/local.neon
+app/config/.run-in-docker
+db/db_dump.sql

@@ -1,0 +1,10 @@
+extensions:
+	console: Contributte\Console\DI\ConsoleExtension(%consoleMode%)
+
+console:
+	name: Stano Project
+	version: '1.0'
+	catchExceptions: true
+	autoExit: true
+	url: 'https://localhost:44'
+	lazy: true

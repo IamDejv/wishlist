@@ -1,0 +1,4 @@
+services:
+	userRepository:
+		class: App\Model\Repository\UserRepository
+		factory: @App\Model\EntityManager::getRepository(App\Model\Entity\User)

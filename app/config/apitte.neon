@@ -1,0 +1,52 @@
+extensions:
+	api: Apitte\Core\DI\ApiExtension
+	middleware: Contributte\Middlewares\DI\MiddlewaresExtension
+	resource: Contributte\DI\Extension\ResourceExtension
+
+middleware:
+	middlewares:
+		- App\Middleware\AuthenticationMiddleware(%endpointPrefixes%, %privateEndpointExceptions%)
+		- Apitte\Middlewares\ApiMiddleware
+
+api:
+	debug: %debugMode%
+	plugins:
+			Apitte\Middlewares\DI\MiddlewaresPlugin:
+			Apitte\Core\DI\Plugin\CoreDecoratorPlugin:
+			Apitte\Core\DI\Plugin\CoreMappingPlugin:
+			Apitte\Negotiation\DI\NegotiationPlugin:
+			Apitte\Debug\DI\DebugPlugin:
+
+services:
+	decorator.response.cors:
+		class: App\Decorator\Response\CorsDecorator
+		tags: [apitte.core.decorator: [priority: 60, type: handler.after]]
+	decorator.error.exception:
+		class: App\Decorator\Exception\ExceptionDecorator
+		tags: [apitte.core.decorator: [priority: 60, type: handler.after]]
+
+resource:
+	resources:
+		App\Controller\Pub\:
+			paths: [%appDir%/Controller/Pub]
+			decorator:
+				inject: true
+		App\Controller\Auth\:
+			paths: [%appDir%/Controller/Auth]
+			decorator:
+				inject: true
+		App\ValueObject\:
+			paths: [%appDir%/ValueObject]
+			decorator:
+				inject: true
+
+parameters:
+	endpointPrefixes:
+		public: '/api/v1/public'
+		private: '/api/v1'
+
+	privateEndpointExceptions:
+		-
+			uri: '/api/v*/images'
+			type: 'GET'
+

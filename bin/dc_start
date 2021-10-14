@@ -1,0 +1,13 @@
+#!/bin/bash
+
+
+path_to_script_directory="$(dirname "$0")";
+cd "$path_to_script_directory";
+
+cd "../docker";
+docker-compose up -d;
+
+touch ./../app/config/.run-in-docker;
+
+echo "Wait for database...";
+sleep 10;

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+path_to_script_directory="$(dirname "$0")";
+cd "$path_to_script_directory/..";
+
+
+if [ ! -d "./log" ]; then
+    mkdir -p ./log;
+fi
+if [ ! -d "./temp" ]; then
+    mkdir -p ./temp;
+else
+    rm -rf ./temp/*;
+fi
+
+if [ ! -d "./temp/webcache" ]; then
+    mkdir -p ./temp/webcache;
+fi
+if [ ! -d "./www/webtemp" ]; then
+    mkdir -p ./www/webtemp;
+else
+    rm -rf ./www/webtemp;
+    mkdir ./www/webtemp;
+fi
+
+chmod -R 0777 ./log ./temp ./www/webtemp;

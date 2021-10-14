@@ -1,0 +1,31 @@
+#!/bin/bash
+
+
+path_to_script_directory="$(dirname "$0")";
+cd "$path_to_script_directory";
+RUN_IN_DOCKER=0;
+
+
+if [ -f "./../app/config/.run-in-docker" ]; then
+	RUN_IN_DOCKER=1;
+fi
+
+if [[ -t 0 ]]; then
+	docker_term_opts="-it";
+else
+	docker_term_opts="";
+fi
+
+if [ $RUN_IN_DOCKER -eq 1 ]; then
+	echo "Run command in docker container \`wish-php\`:";
+	echo "-> $@";
+	docker exec $docker_term_opts wish-php $@
+else
+	echo "Run command:";
+	echo "-> $@";
+
+	cd "../src";
+	$@
+fi
+
+exit $?
