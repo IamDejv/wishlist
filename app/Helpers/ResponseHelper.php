@@ -26,6 +26,7 @@ class ResponseHelper
 	public const CREDENTIALS_INCORRECT = "CREDENTIALS_INCORRECT";
 	public const TOKEN_EXPIRED = "TOKEN_EXPIRED";
 	public const NOT_AUTHENTICATED = "NOT_AUTHENTICATED";
+	const INVALID_TOKEN = "INVALID_TOKEN";
 
 	/**
 	 * @param Exception $exception

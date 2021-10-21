@@ -4,78 +4,52 @@ declare(strict_types=1);
 namespace App\Service;
 
 
-use App\Service\Exception\ExpiredTokenException;
-use App\Service\Exception\InvalidTokenException;
+use App\Model\Entity\User;
+use App\Service\Exceptions\ExpiredTokenException;
 use DateTime;
-use Exception;
+use Doctrine\ORM\EntityNotFoundException;
+use Firebase\Auth\Token\Exception\ExpiredToken;
 use Kreait\Firebase\Contract\Auth;
-use Nette\Security\AuthenticationException;
-use Nette\Security\SimpleIdentity;
-use Nette\Security\User as NetteUser;
 
 class TokenService
 {
-	private Auth $auth;
-
-	private UserService $userService;
-
-	/**
-	 * TokenService constructor.
-	 * @param Auth $firebaseAuthenticator
-	 * @param UserService $userService
-	 */
-	public function __construct(Auth $firebaseAuthenticator, UserService $userService)
+	public function __construct(private Auth $firebaseAuthenticator, private UserService $userService)
 	{
-		$this->auth = $firebaseAuthenticator;
-		$this->userService = $userService;
 	}
 
 	/**
 	 * @param string $token
-	 * @return array
+	 * @param bool $withUser
+	 * @return User|null
+	 * @throws EntityNotFoundException
 	 * @throws ExpiredTokenException
-	 * @throws InvalidTokenException
 	 */
-	public function checkToken(string $token): array {
-		$data = $this->auth->verifyIdToken($token);
+	public function checkToken(string $token, bool $withUser = false): ?User
+	{
+		try {
+			$verifiedToken = $this->firebaseAuthenticator->verifyIdToken($token);
 
-		if ($data->isExpired(new DateTime())) {
+			if ($verifiedToken->isExpired(new DateTime())) {
+				throw new ExpiredTokenException();
+			}
+
+			if ($withUser) {
+				$firebaseUid = $verifiedToken->claims()->get("sub");
+				return $this->userService->getById($firebaseUid);
+			}
+
+			return null;
+		} catch (EntityNotFoundException $e) {
+			throw new EntityNotFoundException();
+		} catch (ExpiredTokenException | ExpiredToken $e) {
 			throw new ExpiredTokenException();
 		}
-		$firebaseUid = $data->claims()->get('sub');
-		try {
-			return [
-				$this->userService->getById($firebaseUid),
-				$data->toString(),
-			];
-		} catch (Exception $ex) {
-			throw new InvalidTokenException();
-		}
 	}
 
-	/**
-	 * @param array $userEntity
-	 * @return SimpleIdentity
-	 */
-	public function createIdentity(array $userEntity): SimpleIdentity
+	public function getFirebaseUidFromToken(string $token): string
 	{
-		[$user, $token] = $userEntity;
-		$data = [
-			'email' => $user->getEmail(),
-			'firebaseUid' => $user->getId(),
-		];
-		return new SimpleIdentity($token, $user->getRole()->getName(), $data);
-	}
+		$verifiedToken = $this->firebaseAuthenticator->verifyIdToken($token);
 
-	/**
-	 * @param NetteUser $user
-	 * @param array $userEntity
-	 * @throws AuthenticationException
-	 */
-	public function refreshIdentity(NetteUser $user, array $userEntity)
-	{
-		$user->logout(true);
-		$identity = $this->createIdentity($userEntity);
-		$user->login($identity);
+		return $verifiedToken->claims()->get("sub");
 	}
 }

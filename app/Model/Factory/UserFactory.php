@@ -5,27 +5,17 @@ namespace App\Model\Factory;
 
 
 use App\Model\Entity\BaseEntity;
+use App\Model\Entity\User;
 use App\Model\Hydrator\UserHydrator;
 use App\ValueObject\ValueObjectInterface;
 
 class UserFactory implements EntityFactoryInterface
 {
-	private UserHydrator $hydrator;
-
-	/**
-	 * UserFactory constructor.
-	 * @param UserHydrator $hydrator
-	 */
-	public function __construct(UserHydrator $hydrator)
+	public function __construct(private UserHydrator $hydrator)
 	{
-		$this->hydrator = $hydrator;
 	}
 
-	/**
-	 * @param ValueObjectInterface $valueObject
-	 * @return BaseEntity|null
-	 */
-	public function create(ValueObjectInterface $valueObject): ?BaseEntity
+	public function create(ValueObjectInterface $valueObject): BaseEntity|User|null
 	{
 		return $this->hydrator->hydrate($valueObject);
 	}

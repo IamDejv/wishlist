@@ -4,33 +4,19 @@ declare(strict_types=1);
 namespace App\Middleware;
 
 use App\Helpers\ResponseHelper;
-use App\Security\AuthorizatorFactory;
-use App\Service\Exception\ExpiredTokenException;
+use App\Service\Exceptions\ExpiredTokenException;
+use App\Service\TokenService;
 use Contributte\Middlewares\IMiddleware;
 use Doctrine\ORM\EntityNotFoundException;
 use Exception;
-use Nette\Security\User as NetteUser;
+use Firebase\Auth\Token\Exception\InvalidToken;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use App\Service\UserService;
 
 class AuthenticationMiddleware implements IMiddleware
 {
-	private NetteUser $user;
-
-	private UserService $userService;
-
-	private array $endpointPrefixes;
-
-	private array $privateEndpointExceptions;
-
-	public function __construct(array $endpointPrefixes, array $privateEndpointExceptions, NetteUser $user, UserService $userService)
+	public function __construct(private array $endpointPrefixes, private array $privateEndpointExceptions, private TokenService $tokenService)
 	{
-		$this->endpointPrefixes = $endpointPrefixes;
-		$this->privateEndpointExceptions = $privateEndpointExceptions;
-		$this->user = $user;
-		$this->userService = $userService;
-		$this->user->setAuthorizator(AuthorizatorFactory::create());
 	}
 
 	/**
@@ -46,20 +32,23 @@ class AuthenticationMiddleware implements IMiddleware
 		}
 
 		// If public endpoint is matched in url, its public endpoint OR if is endpoint in private endpoint exceptions
-		if (str_contains($this->getUriPath($request), $this->getPublicEndpoints()) || $this->isPrivateEndpointException($request)) {
-			return $next($request->withAttribute('publicEndpoint', true), $response);
-		}
+//		if (str_contains($this->getUriPath($request), $this->getPublicEndpoints()) || $this->isPrivateEndpointException($request)) {
+//			return $next($request->withAttribute('publicEndpoint', true), $response);
+//		}
+
 		$tokenHeaderValue = $request->getHeader('Authentication');
 		if (empty($tokenHeaderValue)) {
 			return $this->notAuthenticated($response, 'Header Authentication not included');
 		}
 
 		try {
-			$this->userService->checkToken($tokenHeaderValue[0]);
+			$this->tokenService->checkToken($tokenHeaderValue[0]);
 		} catch (ExpiredTokenException $e) {
 			return $this->notAuthenticated($response, 'Authentication error!', ResponseHelper::TOKEN_EXPIRED);
 		} catch (EntityNotFoundException $e) {
 			return $this->notAuthenticated($response, 'Authentication error!', ResponseHelper::NOT_REGISTERED);
+		} catch (InvalidToken $e) {
+			return $this->notAuthenticated($response, 'Authentication error!', ResponseHelper::INVALID_TOKEN);
 		} catch (Exception $e) {
 			return $this->notAuthenticated($response, 'Authentication error!');
 		}
@@ -149,10 +138,6 @@ class AuthenticationMiddleware implements IMiddleware
 	 */
 	private function notAuthenticated(ResponseInterface $response, string $message, string $code = null): ResponseInterface
 	{
-		if ($this->user->isLoggedIn()) {
-			$this->user->logout(true);
-		}
-
 		$response->getBody()->write(json_encode([
 			'message' => $message,
 			'code' => $code,

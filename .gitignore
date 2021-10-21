@@ -83,3 +83,4 @@ www/images/products/*
 app/config/local.neon
 app/config/.run-in-docker
 db/db_dump.sql
+/app/config/env/

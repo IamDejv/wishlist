@@ -27,7 +27,7 @@ class UsersController extends BaseAuthController
 	}
 
 	/**
-	 * @Path("/all")
+	 * @Path("/")
 	 * @Method("GET")
 	 * @param ApiRequest $request
 	 * @param ApiResponse $response
@@ -39,31 +39,6 @@ class UsersController extends BaseAuthController
 			->withStatus(ResponseHelper::OK);
 	}
 
-	/**
-	 * @Path("/trainers")
-	 * @Method("GET")
-	 * @param ApiRequest $request
-	 * @param ApiResponse $response
-	 * @return ApiResponse
-	 */
-	public function listTrainers(ApiRequest $request, ApiResponse $response): ApiResponse
-	{
-		return $response->writeJsonBody($this->userService->getAllByRole([RoleEnum::TRAINER_ID, RoleEnum::MANAGER_ID, RoleEnum::ADMINISTRATOR_ID]))
-			->withStatus(ResponseHelper::OK);
-	}
-
-	/**
-	 * @Path("/")
-	 * @Method("GET")
-	 * @param ApiRequest $request
-	 * @param ApiResponse $response
-	 * @return ApiResponse
-	 */
-	public function listUsers(ApiRequest $request, ApiResponse $response): ApiResponse
-	{
-		return $response->writeJsonBody($this->userService->getAllByRole([RoleEnum::USER_ID]))
-			->withStatus(ResponseHelper::OK);
-	}
 
 	/**
 	 * @Path("/{id}")
@@ -78,92 +53,5 @@ class UsersController extends BaseAuthController
 	public function get(ApiRequest $request, ApiResponse $response): ApiResponse
 	{
 		return $response;
-	}
-
-	/**
-	 * @Path("/role/{userId}")
-	 * @Method("PUT")
-	 * @RequestParameters({
-	 * 		@RequestParameter(name="userId", type="string")
-	 *})
-	 * @param ApiRequest $request
-	 * @param ApiResponse $response
-	 * @return ApiResponse
-	 */
-	public function changeRole(ApiRequest $request, ApiResponse $response): ApiResponse
-	{
-		try {
-			$userId = $request->getParameter("userId");
-
-			$role = $request->getJsonBody()["role"];
-
-			$user = $this->userService->changeRole($userId, $role);
-			return $response->writeJsonBody($user)
-				->withStatus(ResponseHelper::OK);
-		} catch (EntityNotFoundException $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-			])->withStatus(ResponseHelper::NOT_FOUND);
-		} catch (Exception $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
-		}
-	}
-
-	/**
-	 * @Path("/{userId}")
-	 * @Method("DELETE")
-	 * @RequestParameters({
-	 * 		@RequestParameter(name="userId", type="string")
-	 *})
-	 * @param ApiRequest $request
-	 * @param ApiResponse $response
-	 * @return ApiResponse
-	 */
-	public function delete(ApiRequest $request, ApiResponse $response): ApiResponse
-	{
-		try {
-			$userId = $request->getParameter("userId");
-
-			$this->userService->disable($userId);
-			return $response->withStatus(ResponseHelper::NO_CONTENT);
-		} catch (EntityNotFoundException $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-			])->withStatus(ResponseHelper::NOT_FOUND);
-		} catch (AuthException|Exception|FirebaseException $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
-		}
-	}
-
-	/**
-	 * @Path("/activate/{userId}")
-	 * @Method("PUT")
-	 * @RequestParameters({
-	 * 		@RequestParameter(name="userId", type="string")
-	 *})
-	 * @param ApiRequest $request
-	 * @param ApiResponse $response
-	 * @return ApiResponse
-	 */
-	public function activate(ApiRequest $request, ApiResponse $response): ApiResponse
-	{
-		try {
-			$userId = $request->getParameter("userId");
-
-			$this->userService->enable($userId);
-			return $response->withStatus(ResponseHelper::CREATED);
-		} catch (EntityNotFoundException $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-			])->withStatus(ResponseHelper::NOT_FOUND);
-		} catch (AuthException|Exception|FirebaseException $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
-		}
 	}
 }

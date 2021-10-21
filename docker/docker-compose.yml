@@ -40,9 +40,10 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT: root
       MYSQL_ROOT_PASSWORD: rootpasswd
-      MYSQL_USER: root
-      MYSQL_PASSWORD: rootpasswd
+      MYSQL_USER: wish
+      MYSQL_PASSWORD: wishpasswd
       MYSQL_DATABASE: wishlist
       MYSQL_INITDB_SKIP_TZINFO: 1
     command:

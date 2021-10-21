@@ -9,13 +9,9 @@ use App\Model\Factory\UserFactory;
 use App\Model\Hydrator\UserHydrator;
 use App\Model\Repository\UserRepository;
 use App\Model\ResponseMapper\UserResponseMapper;
-use App\Security\RoleEnum;
-use App\Service\Exception\ExpiredTokenException;
 use App\ValueObject\UserValueObject;
-use DateTime;
 use Doctrine\ORM\EntityNotFoundException;
 use Exception;
-use Firebase\Auth\Token\Exception\ExpiredToken;
 use Kreait\Firebase\Contract\Auth;
 use Kreait\Firebase\Exception\AuthException;
 use Kreait\Firebase\Exception\FirebaseException;
@@ -28,7 +24,7 @@ class UserService extends BaseService
 		protected UserRepository $repository,
 		private UserResponseMapper $responseMapper,
 		private UserHydrator $hydrator,
-		private Auth $auth,
+		private Auth $firebaseAuthenticator,
 		private UserFactory $factory
 	) {
 		parent::__construct($this->repository);
@@ -46,14 +42,15 @@ class UserService extends BaseService
 	public function signUp(UserValueObject $userValueObject, string $token): User
 	{
 		$existingUser = $this->findByEmail($userValueObject->getEmail());
+
 		if (!is_null($existingUser)) {
-			throw new Exception("Email byl již použit");
+			throw new Exception("Email is already used");
 		}
 
 		/** @var User $user */
 		$user = $this->factory->create($userValueObject);
 
-		$token = $this->auth->verifyIdToken($token);
+		$token = $this->firebaseAuthenticator->verifyIdToken($token);
 
 		$firebaseUid = $token->claims()->get("sub");
 
@@ -63,10 +60,9 @@ class UserService extends BaseService
 			$this->em->persist($user);
 			$this->em->flush();
 
-			$this->auth->setCustomUserClaims($firebaseUid, ["role" => RoleEnum::USER_ID]);
 			return $user;
 		} catch (Exception $e) {
-			throw new Exception("Uživatel nebyl vytvořen");
+			throw new Exception("User not created");
 		}
 	}
 
@@ -102,49 +98,11 @@ class UserService extends BaseService
 	}
 
 	/**
-	 * @param string $token
-	 * @throws EntityNotFoundException
-	 * @throws ExpiredTokenException
-	 */
-	public function checkToken(string $token)
-	{
-		try {
-			$verifiedToken = $this->auth->verifyIdToken($token);
-			if ($verifiedToken->isExpired(new DateTime())) {
-				throw new ExpiredTokenException();
-			}
-			$firebaseUid = $verifiedToken->claims()->get("sub");
-
-			$this->getById($firebaseUid);
-
-		} catch (EntityNotFoundException $e) {
-			throw new EntityNotFoundException();
-		} catch (ExpiredTokenException | ExpiredToken $e) {
-			throw new ExpiredTokenException();
-		}
-	}
-
-	/**
 	 * @return array
 	 */
 	public function getAll(): array
 	{
 		$users = $this->repository->findAll();
-
-		$userArray = [];
-		foreach ($users as $user) {
-			array_push($userArray, $this->responseMapper->toArray($user));
-		}
-		return $userArray;
-	}
-
-	/**
-	 * @param array $roles
-	 * @return array
-	 */
-	public function getAllByRole(array $roles): array
-	{
-		$users = $this->repository->findAllByRole($roles);
 
 		$userArray = [];
 		foreach ($users as $user) {
@@ -171,36 +129,22 @@ class UserService extends BaseService
 	/**
 	 * @param string $firebaseUid
 	 * @param UserValueObject $userValueObject
-	 * @return array
+	 * @return User
 	 * @throws EntityNotFoundException
 	 */
-	public function updateMe(string $firebaseUid, UserValueObject $userValueObject): array
+	public function updateMe(string $firebaseUid, UserValueObject $userValueObject): User
 	{
 		$user = $this->getById($firebaseUid);
+
+		if ($user instanceof User) {
+			throw new EntityNotFoundException();
+		}
 
 		$updatedUser = $this->hydrator->hydrate($userValueObject, $user);
 
 		$this->em->flush();
 
-		return $this->responseMapper->toArray($updatedUser);
-	}
-
-	/**
-	 * @param string $userId
-	 * @param int $role
-	 * @return array
-	 * @throws AuthException
-	 * @throws EntityNotFoundException
-	 * @throws FirebaseException
-	 * @throws Exception
-	 */
-	public function changeRole(string $userId, int $role): array
-	{
-		$user = $this->getById($userId);
-
-		$this->em->flush();
-
-		return $this->responseMapper->toArray($user);
+		return $updatedUser;
 	}
 
 	/**
@@ -213,7 +157,11 @@ class UserService extends BaseService
 	{
 		$user = $this->getById($userId);
 
-		$this->auth->disableUser($userId);
+		if ($user instanceof User) {
+			throw new EntityNotFoundException();
+		}
+
+		$this->firebaseAuthenticator->disableUser($userId);
 
 		$this->em->flush();
 	}
@@ -228,13 +176,11 @@ class UserService extends BaseService
 	{
 		$user = $this->repository->find($userId);
 
-		if (is_null($user)) {
+		if ($user instanceof User) {
 			throw new EntityNotFoundException();
 		}
 
-		$this->auth->enableUser($userId);
-
-		$user->setActive(true);
+		$this->firebaseAuthenticator->enableUser($userId);
 
 		$this->em->flush();
 	}

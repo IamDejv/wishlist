@@ -10,4 +10,4 @@ docker-compose up -d;
 touch ./../app/config/.run-in-docker;
 
 echo "Wait for database...";
-sleep 10;
+sleep 5;

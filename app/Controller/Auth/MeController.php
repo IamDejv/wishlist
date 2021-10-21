@@ -13,6 +13,7 @@ use Apitte\Core\Http\ApiResponse;
 use App\Helpers\ResponseHelper;
 use App\Model\Factory\UserFactory;
 use App\Model\ResponseMapper\UserResponseMapper;
+use App\Service\TokenService;
 use App\Service\UserService;
 use App\ValueObject\Exception\InvalidValueException;
 use App\ValueObject\UserValueObject;
@@ -24,14 +25,10 @@ use Exception;
  */
 class MeController extends BaseAuthController
 {
-	/**
-	 * MeController constructor.
-	 * @param UserService $userService
-	 * @param UserResponseMapper $userResponseMapper
-	 */
-	public function __construct(private UserService $userService, private UserResponseMapper $userResponseMapper)
-	{
-	}
+	public function __construct(
+		private UserService $userService,
+		private TokenService $tokenService
+	) {}
 
 	/**
 	 * @Path("/")
@@ -47,13 +44,15 @@ class MeController extends BaseAuthController
 	public function get(ApiRequest $request, ApiResponse $response): ApiResponse
 	{
 		try {
-			$user = $this->userService
-				->getById($this->getLoggedUserId($request));
-			return $response->writeJsonBody($this->userResponseMapper->toArray($user))
+			$tokenHeader = $request->getHeader("Authentication");
+			$firebaseUid = $this->tokenService->getFirebaseUidFromToken($tokenHeader[0]);
+			$user = $this->userService->getById($firebaseUid);
+
+			return $response->writeJsonBody($user->toArray())
 				->withStatus(ResponseHelper::OK);
 		} catch (EntityNotFoundException $e) {
 			return $response->writeJsonBody([
-				'message' => "Uživatel neexistuje",
+				'message' => "User does not exist",
 			])->withStatus(ResponseHelper::NOT_FOUND);
 		} catch (Exception $e) {
 			return $response->writeJsonBody([
@@ -81,7 +80,10 @@ class MeController extends BaseAuthController
 			/** @var UserValueObject $userValueObject */
 			$userValueObject = $this->getRequestEntity($request);
 
-			$user = $this->userService->updateMe($this->getLoggedUserId($request), $userValueObject);
+			$tokenHeader = $request->getHeader("Authentication");
+			$firebaseUid = $this->tokenService->getFirebaseUidFromToken($tokenHeader[0]);
+
+			$user = $this->userService->updateMe($firebaseUid, $userValueObject);
 
 			return $response->writeJsonBody($user)
 				->withStatus(ResponseHelper::OK);

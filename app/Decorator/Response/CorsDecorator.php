@@ -7,9 +7,12 @@ namespace App\Decorator\Response;
 use Apitte\Core\Decorator\IResponseDecorator;
 use Apitte\Core\Http\ApiRequest;
 use Apitte\Core\Http\ApiResponse;
+use App\Decorator\Traits\CorsResponse;
 
 class CorsDecorator implements IResponseDecorator
 {
+	use CorsResponse;
+
 	/**
 	 * @param ApiRequest $request
 	 * @param ApiResponse $response
@@ -17,8 +20,6 @@ class CorsDecorator implements IResponseDecorator
 	 */
 	public function decorateResponse(ApiRequest $request, ApiResponse $response): ApiResponse
 	{
-		return $response->withHeader('Access-Control-Allow-Origin', '*')
-			->withHeader('Access-Control-Allow-Headers', 'content-type, accept, Authentication')
-			->withHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, PATCH, OPTIONS, PUT');
+		return $this->corsResponse($request, $response);
 	}
 }

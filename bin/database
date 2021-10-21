@@ -4,13 +4,15 @@ path_to_script_directory="$(dirname "$0")";
 cd "$path_to_script_directory/..";
 
 
-echo "drop database if exists wish; create database wish;" | mysql -uroot -prootpasswd --host="db";
+echo "drop database if exists wishlist; create database wishlist;" | mysql -uroot -prootpasswd --host="wish-db";
 
-bin/console migrations:migrate --no-interaction
+php bin/console orm:schema-tool:drop --force --full-database
+php bin/console orm:schema-tool:create --no-interaction
+// php bin/console doctrine:fixtures:load --no-interaction
 
 if [ -f ./db/db_dump.sql ]; then
-    echo "Importing DB dump to devapp..."
-    cat ./db/db_dump.sql | mysql -uroot -prootpasswd --host="db" wish;
+    echo "Importing DB dump to wishdb..."
+    cat ./db/db_dump.sql | mysql -uroot -prootpasswd --host="wish-db" wishlist;
 fi
 
 if [ ! -d "./temp" ]; then

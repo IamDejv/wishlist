@@ -11,10 +11,10 @@ docker-compose up -d --force-recreate --renew-anon-volumes db;
 echo "Wait for database...";
 while [[ $(docker logs wish-db | grep -q "Ready for start up" && echo "A" || echo "N") == "N" ]]
 do
-	sleep 10;
+	sleep 5;
 done
 echo " -> OK"
-sleep 10;
+sleep 5;
 
 cd "../bin";
 ./dc_exec "/app/bin/database";

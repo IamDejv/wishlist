@@ -21,6 +21,7 @@ use Nette\Security\AuthenticationException;
 use App\Service\UserService;
 use App\ValueObject\Exception\InvalidValueException;
 use App\ValueObject\UserValueObject;
+use function Couchbase\defaultDecoder;
 
 /**
  * @Path("/")
@@ -53,7 +54,7 @@ class LoginController extends BasePubController
 
 			$user = $this->userService->signUp($userValueObject, $token[0]);
 
-			return $response->writeJsonBody($user)
+			return $response->writeJsonBody($user->toArray())
 				->withStatus(ResponseHelper::OK);
 		} catch (InvalidValueException $e) {
 			return $response->writeJsonBody([

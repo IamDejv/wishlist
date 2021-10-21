@@ -3,17 +3,13 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\HandlerExtension\Exception\TokenException;
 use App\Helpers\ResponseHelper;
-use App\Security\AuthorizatorFactory;
 use Apitte\Core\Annotation\Controller\Path;
 use Apitte\Core\Http\ApiRequest;
 use Apitte\Core\Http\ApiResponse;
 use Apitte\Core\UI\Controller\IController;
 use Exception;
-use Nette\Security\AuthenticationException;
 use Nette\Security\User;
-use App\Service\TokenService;
 use App\ValueObject\Exception\InvalidValueException;
 use App\ValueObject\ValueObject;
 
@@ -28,36 +24,12 @@ abstract class BaseV1Controller implements IController
 	public User $user;
 
 	/**
-	 * @inject
-	 */
-	public TokenService $tokenService;
-
-	/**
-	 * @param ApiRequest|null $request
-	 * @return User
-	 * @throws TokenException
-	 * @throws AuthenticationException
-	 */
-	public function getUser(ApiRequest $request = null): User
-	{
-		$this->user->setAuthorizator(AuthorizatorFactory::create());
-		if (empty($request) === false) {
-			$tokenHeaderValue = $request->getHeader('Authentication');
-			$this->tokenService->refreshIdentity(
-				$this->user,
-				$this->tokenService->checkToken($tokenHeaderValue[0])
-			);
-		}
-		return $this->user;
-	}
-
-	/**
 	 * @param ApiRequest $request
 	 * @param bool $validate
 	 * @return ValueObject
 	 * @throws InvalidValueException
 	 */
-	public function getRequestEntity(ApiRequest $request, $validate = true): ValueObject
+	public function getRequestEntity(ApiRequest $request, bool $validate = true): ValueObject
 	{
 
 		/** @var ValueObject $entity */
