@@ -10,12 +10,7 @@ use Apitte\Core\Annotation\Controller\RequestParameter;
 use Apitte\Core\Http\ApiRequest;
 use Apitte\Core\Http\ApiResponse;
 use App\Helpers\ResponseHelper;
-use App\Security\RoleEnum;
 use App\Service\UserService;
-use Doctrine\ORM\EntityNotFoundException;
-use Exception;
-use Kreait\Firebase\Exception\AuthException;
-use Kreait\Firebase\Exception\FirebaseException;
 
 /**
  * @Path("/users")

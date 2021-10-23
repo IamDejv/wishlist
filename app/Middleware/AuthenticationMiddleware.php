@@ -31,10 +31,10 @@ class AuthenticationMiddleware implements IMiddleware
 			return $this->responseWithCorrectHeaders($response);
 		}
 
-		// If public endpoint is matched in url, its public endpoint OR if is endpoint in private endpoint exceptions
-//		if (str_contains($this->getUriPath($request), $this->getPublicEndpoints()) || $this->isPrivateEndpointException($request)) {
-//			return $next($request->withAttribute('publicEndpoint', true), $response);
-//		}
+//		 If public endpoint is matched in url, its public endpoint OR if is endpoint in private endpoint exceptions
+		if ($this->isPrivateEndpointException($request)) {
+			return $next($request->withAttribute('publicEndpoint', true), $response);
+		}
 
 		$tokenHeaderValue = $request->getHeader('Authentication');
 		if (empty($tokenHeaderValue)) {

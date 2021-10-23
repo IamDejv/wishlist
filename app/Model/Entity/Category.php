@@ -7,6 +7,7 @@ use App\Model\Entity\Traits\TId;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use JetBrains\PhpStorm\ArrayShape;
 use JetBrains\PhpStorm\Pure;
 
 /**
@@ -47,5 +48,78 @@ class Category extends BaseEntity
 		$this->subcategories = new ArrayCollection();
 	}
 
+	/**
+	 * @return string
+	 */
+	public function getName(): string
+	{
+		return $this->name;
+	}
 
+	/**
+	 * @param string $name
+	 */
+	public function setName(string $name): void
+	{
+		$this->name = $name;
+	}
+
+	/**
+	 * @return string|null
+	 */
+	public function getImage(): ?string
+	{
+		return $this->image;
+	}
+
+	/**
+	 * @param string|null $image
+	 */
+	public function setImage(?string $image): void
+	{
+		$this->image = $image;
+	}
+
+	/**
+	 * @return Category
+	 */
+	public function getParent(): Category
+	{
+		return $this->parent;
+	}
+
+	/**
+	 * @param Category $parent
+	 */
+	public function setParent(Category $parent): void
+	{
+		$this->parent = $parent;
+	}
+
+	/**
+	 * @return ArrayCollection|Collection
+	 */
+	public function getSubcategories(): ArrayCollection|Collection
+	{
+		return $this->subcategories;
+	}
+
+	/**
+	 * @param ArrayCollection|Collection $subcategories
+	 */
+	public function setSubcategories(ArrayCollection|Collection $subcategories): void
+	{
+		$this->subcategories = $subcategories;
+	}
+
+	#[Pure]
+	#[ArrayShape(["name" => "string", "image" => "null|string", "parent" => "int"])]
+	public function toArray(): array
+	{
+		return [
+			"name" => $this->getName(),
+			"image" => $this->getImage(),
+			"parent" => $this->getParent()?->getId(),
+		];
+	}
 }

@@ -10,18 +10,13 @@ use Apitte\Core\Annotation\Controller\Responses;
 use Apitte\Core\Annotation\Controller\Response;
 use Apitte\Core\Http\ApiRequest;
 use Apitte\Core\Http\ApiResponse;
-use App\Controller\Auth\BaseAuthController;
-use Doctrine\ORM\EntityNotFoundException;
 use Exception;
 use App\Helpers\ResponseHelper;
 use Kreait\Firebase\Exception\AuthException;
 use Kreait\Firebase\Exception\FirebaseException;
-use App\Model\Factory\UserFactory;
-use Nette\Security\AuthenticationException;
 use App\Service\UserService;
 use App\ValueObject\Exception\InvalidValueException;
 use App\ValueObject\UserValueObject;
-use function Couchbase\defaultDecoder;
 
 /**
  * @Path("/")

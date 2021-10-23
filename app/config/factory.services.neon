@@ -1,2 +1,6 @@
 services:
 	- App\Model\Factory\UserFactory
+	- App\Model\Factory\GroupFactory
+	- App\Model\Factory\ProductFactory
+	- App\Model\Factory\WishlistFactory
+	- App\Model\Factory\CategoryFactory

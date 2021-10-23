@@ -2,3 +2,15 @@ services:
 	userRepository:
 		class: App\Model\Repository\UserRepository
 		factory: @App\Model\EntityManager::getRepository(App\Model\Entity\User)
+	groupRepository:
+		class: App\Model\Repository\GroupRepository
+		factory: @App\Model\EntityManager::getRepository(App\Model\Entity\Group)
+	productRepository:
+		class: App\Model\Repository\ProductRepository
+		factory: @App\Model\EntityManager::getRepository(App\Model\Entity\Product)
+	wishlistRepository:
+		class: App\Model\Repository\WishlistRepository
+		factory: @App\Model\EntityManager::getRepository(App\Model\Entity\Wishlist)
+	categoryRepository:
+		class: App\Model\Repository\CategoryRepository
+		factory: @App\Model\EntityManager::getRepository(App\Model\Entity\Category)

@@ -7,6 +7,7 @@ use App\Model\Entity\Traits\TId;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use JetBrains\PhpStorm\ArrayShape;
 use JetBrains\PhpStorm\Pure;
 
 /**
@@ -20,7 +21,7 @@ class Wishlist extends BaseEntity
 
 	/**
 	 * One wishlist has many products. This is the inverse side.
-	 * @ORM\OneToMany(targetEntity="Wishlist", mappedBy="wishlist")
+	 * @ORM\OneToMany(targetEntity="Product", mappedBy="wishlist")
 	 */
 	private Collection $products;
 
@@ -37,5 +38,46 @@ class Wishlist extends BaseEntity
 		$this->products = new ArrayCollection();
 	}
 
+	/**
+	 * @return ArrayCollection|Collection
+	 */
+	public function getProducts(): ArrayCollection|Collection
+	{
+		return $this->products;
+	}
+
+	/**
+	 * @param ArrayCollection|Collection $products
+	 */
+	public function setProducts(ArrayCollection|Collection $products): void
+	{
+		$this->products = $products;
+	}
+
+	/**
+	 * @return User
+	 */
+	public function getOwner(): User
+	{
+		return $this->owner;
+	}
+
+	/**
+	 * @param User $owner
+	 */
+	public function setOwner(User $owner): void
+	{
+		$this->owner = $owner;
+	}
+
+	#[Pure]
+	#[ArrayShape(["id" => "int", "user" => "string"])]
+	public function toArray()
+	{
+		return [
+			"id" => $this->getId(),
+			"user" => $this->getOwner()->getId(),
+		];
+	}
 
 }

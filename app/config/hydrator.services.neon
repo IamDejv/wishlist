@@ -1,2 +1,6 @@
 services:
 	- App\Model\Hydrator\UserHydrator
+	- App\Model\Hydrator\GroupHydrator
+	- App\Model\Hydrator\ProductHydrator
+	- App\Model\Hydrator\WishlistHydrator
+	- App\Model\Hydrator\CategoryHydrator

@@ -1,3 +1,11 @@
 services:
 	userService:
 		class: App\Service\UserService
+	groupService:
+		class: App\Service\GroupService
+	wishlistService:
+		class: App\Service\WishlistService
+	productService:
+		class: App\Service\ProductService
+	categoryService:
+		class: App\Service\CategoryService

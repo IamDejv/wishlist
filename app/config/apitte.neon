@@ -47,6 +47,6 @@ parameters:
 
 	privateEndpointExceptions:
 		-
-			uri: '/api/v*/images'
+			uri: '/api/v*/public/bonjour'
 			type: 'GET'
 
