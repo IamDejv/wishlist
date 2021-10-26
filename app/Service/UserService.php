@@ -7,26 +7,33 @@ namespace App\Service;
 use App\Model\Entity\User;
 use App\Model\Factory\UserFactory;
 use App\Model\Hydrator\UserHydrator;
+use App\Model\Repository\FriendRepository;
 use App\Model\Repository\UserRepository;
-use App\Model\ResponseMapper\UserResponseMapper;
+use App\ValueObject\AddFriendValueObject;
 use App\ValueObject\UserValueObject;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Collections\ExpressionBuilder;
 use Doctrine\ORM\EntityNotFoundException;
 use Exception;
 use Kreait\Firebase\Contract\Auth;
 use Kreait\Firebase\Exception\AuthException;
 use Kreait\Firebase\Exception\FirebaseException;
+use Nette\Utils\Paginator;
 use Nettrine\ORM\EntityManagerDecorator;
 
 class UserService extends BaseService
 {
 	public function __construct(
 		protected EntityManagerDecorator $em,
-		protected UserRepository $repository,
-		private UserResponseMapper $responseMapper,
-		private UserHydrator $hydrator,
-		private Auth $firebaseAuthenticator,
-		private UserFactory $factory
-	) {
+		protected UserRepository         $repository,
+		private UserHydrator             $hydrator,
+		private Auth                     $firebaseAuthenticator,
+		private UserFactory              $factory,
+		private FriendRepository         $friendRepository
+	)
+	{
 		parent::__construct($this->repository);
 	}
 
@@ -67,19 +74,14 @@ class UserService extends BaseService
 	}
 
 	/**
-	 * @param int $id
+	 * @param string $id
 	 * @param UserValueObject $userValueObject
 	 * @return User
 	 * @throws EntityNotFoundException
 	 */
-	public function update(int $id, UserValueObject $userValueObject): User
+	public function update(string $id, UserValueObject $userValueObject): User
 	{
-		/** @var User $user */
-		$user = $this->repository->find($id);
-
-		if (is_null($user)) {
-			throw new EntityNotFoundException("Tento uživatel neexistuje");
-		}
+		$user = $this->getById($id);
 
 		$updatedUser = $this->hydrator->hydrate($userValueObject, $user);
 
@@ -98,17 +100,37 @@ class UserService extends BaseService
 	}
 
 	/**
+	 * @param string|null $search
+	 * @param Paginator $paginator
 	 * @return array
 	 */
-	public function getAll(): array
+	public function getAll(?string $search, Paginator $paginator): array
 	{
-		$users = $this->repository->findAll();
-
-		$userArray = [];
-		foreach ($users as $user) {
-			array_push($userArray, $this->responseMapper->toArray($user));
+		$criteria = new Criteria();
+		if (isset($search)) {
+			$criteria
+				->where((new ExpressionBuilder())->contains("firstname", $search))
+				->orWhere((new ExpressionBuilder())->contains("lastname", $search))
+			;
 		}
-		return $userArray;
+
+		$users = $this->repository->findByCriteria($criteria, [], $paginator->getItemsPerPage(), $paginator->getOffset());
+
+		return $users;
+	}
+
+	/**
+	 * @param string $id
+	 * @param string|null $search
+	 * @param Paginator $paginator
+	 * @return array
+	 */
+	public function getNotUserFriend(string $id, ?string $search, Paginator $paginator): array
+	{
+		$myFriends = $this->friendRepository->findFriends($id);
+		$users = $this->repository->findUsers($id, $search, $myFriends, [], $paginator->getItemsPerPage(), $paginator->getOffset());
+
+		return $users;
 	}
 
 	/**
@@ -118,11 +140,12 @@ class UserService extends BaseService
 	 */
 	public function getById(string $firebaseUid): User
 	{
-		/** @var User $user */
 		$user = $this->repository->find($firebaseUid);
-		if (is_null($user)) {
+
+		if (!$user instanceof User) {
 			throw new EntityNotFoundException();
 		}
+
 		return $user;
 	}
 
@@ -135,10 +158,6 @@ class UserService extends BaseService
 	public function updateMe(string $firebaseUid, UserValueObject $userValueObject): User
 	{
 		$user = $this->getById($firebaseUid);
-
-		if ($user instanceof User) {
-			throw new EntityNotFoundException();
-		}
 
 		$updatedUser = $this->hydrator->hydrate($userValueObject, $user);
 
@@ -157,7 +176,7 @@ class UserService extends BaseService
 	{
 		$user = $this->getById($userId);
 
-		if ($user instanceof User) {
+		if (!$user instanceof User) {
 			throw new EntityNotFoundException();
 		}
 
@@ -167,22 +186,43 @@ class UserService extends BaseService
 	}
 
 	/**
-	 * @param string $userId
+	 * @param string $id
 	 * @throws AuthException
 	 * @throws EntityNotFoundException
 	 * @throws FirebaseException
 	 */
-	public function enable(string $userId)
+	public function enable(string $id)
 	{
-		$user = $this->repository->find($userId);
+		$this->getById($id);
 
-		if ($user instanceof User) {
-			throw new EntityNotFoundException();
-		}
-
-		$this->firebaseAuthenticator->enableUser($userId);
+		$this->firebaseAuthenticator->enableUser($id);
 
 		$this->em->flush();
 	}
 
+	/**
+	 * @param string $id
+	 * @return ArrayCollection|Collection
+	 * @throws EntityNotFoundException
+	 */
+	public function getUserFriends(string $id): ArrayCollection|Collection
+	{
+		$user = $this->getById($id);
+
+		return $user->getMyFriends();
+	}
+
+	/**
+	 * @throws EntityNotFoundException
+	 */
+	public function addFriend(string $id, AddFriendValueObject $valueObject)
+	{
+		$newFriend = $this->getById($valueObject->getId());
+
+		$user = $this->getById($id);
+
+		$user->addFriend($newFriend);
+
+		$this->em->flush();
+	}
 }

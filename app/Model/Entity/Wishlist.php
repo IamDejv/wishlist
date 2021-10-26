@@ -72,7 +72,7 @@ class Wishlist extends BaseEntity
 
 	#[Pure]
 	#[ArrayShape(["id" => "int", "user" => "string"])]
-	public function toArray()
+	public function toArray(): array
 	{
 		return [
 			"id" => $this->getId(),

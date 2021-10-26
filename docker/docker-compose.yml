@@ -37,7 +37,7 @@ services:
   db:
     image: mariadb:10.6
     container_name: wish-db
-    restart: always
+    restart: "no"
     environment:
       MYSQL_ROOT_HOST: "%"
       MYSQL_ROOT: root

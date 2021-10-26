@@ -33,9 +33,9 @@ class Group extends BaseEntity
 	private string $type;
 
 	/**
-	 * @ORM\Column(type="boolean")
+	 * @ORM\Column(type="text", nullable=false)
 	 */
-	private bool $public;
+	private string $image;
 
 	/**
 	 * @return string
@@ -86,19 +86,19 @@ class Group extends BaseEntity
 	}
 
 	/**
-	 * @return bool
+	 * @return string
 	 */
-	public function isPublic(): bool
+	public function getImage(): string
 	{
-		return $this->public;
+		return $this->image;
 	}
 
 	/**
-	 * @param bool $public
+	 * @param string $image
 	 */
-	public function setPublic(bool $public): void
+	public function setImage(string $image): void
 	{
-		$this->public = $public;
+		$this->image = $image;
 	}
 
 	#[Pure]
@@ -110,7 +110,6 @@ class Group extends BaseEntity
 			"name" => $this->getName(),
 			"description" => $this->getDescription(),
 			"type" => $this->getType(),
-			"public" => $this->isPublic(),
 		];
 	}
 }

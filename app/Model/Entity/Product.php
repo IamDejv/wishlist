@@ -7,6 +7,7 @@ use App\Model\Entity\Traits\TId;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use JetBrains\PhpStorm\ArrayShape;
 use JetBrains\PhpStorm\Pure;
 
 /**
@@ -153,7 +154,9 @@ class Product extends BaseEntity
 		$this->categories->add($category);
 	}
 
-	public function toArray()
+	#[Pure]
+	#[ArrayShape(["name" => "string", "desc" => "string", "url" => "null|string", "image" => "null|string", "price" => "float|null"])]
+	public function toArray(): array
 	{
 		return [
 			"name" => $this->getName(),

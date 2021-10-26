@@ -6,15 +6,16 @@ namespace App\Controller\Auth;
 use Apitte\Core\Annotation\Controller\Method;
 use Apitte\Core\Annotation\Controller\Path;
 use Apitte\Core\Annotation\Controller\RequestBody;
-use Apitte\Core\Annotation\Controller\RequestParameters;
 use Apitte\Core\Annotation\Controller\RequestParameter;
-use Apitte\Core\Annotation\Controller\Responses;
+use Apitte\Core\Annotation\Controller\RequestParameters;
 use Apitte\Core\Annotation\Controller\Response;
+use Apitte\Core\Annotation\Controller\Responses;
+use Apitte\Core\Exception\Api\ClientErrorException;
 use Apitte\Core\Http\ApiRequest;
 use Apitte\Core\Http\ApiResponse;
+use App\Enum\ResponseEnum;
 use App\Helpers\ResponseHelper;
 use App\Service\ProductService;
-use App\ValueObject\Exception\InvalidValueException;
 use App\ValueObject\ProductValueObject;
 use Doctrine\ORM\EntityNotFoundException;
 use Exception;
@@ -38,7 +39,8 @@ class ProductController extends BaseAuthController
 	 */
 	public function listAll(ApiRequest $request, ApiResponse $response): ApiResponse
 	{
-		return $response->writeJsonBody($this->service->getAll())
+		return $response
+			->withAttribute(ResponseEnum::MULTIPLE, $this->service->getAll())
 			->withStatus(ResponseHelper::OK);
 	}
 
@@ -60,11 +62,10 @@ class ProductController extends BaseAuthController
 
 			$product = $this->service->get($id);
 
-			return $apiResponse->writeJsonBody($product->toArray());
-		} catch (EntityNotFoundException|Exception $e) {
-			return $apiResponse->writeJsonBody([
-				'message' => $e->getMessage(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
+			return $apiResponse
+				->withAttribute(ResponseEnum::SINGLE, $product);
+		} catch (EntityNotFoundException | Exception $e) {
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
 		}
 	}
 
@@ -88,17 +89,11 @@ class ProductController extends BaseAuthController
 
 			$product = $this->service->create($valueObject);
 
-			return $response->writeJsonBody($product->toArray())
+			return $response
+				->withAttribute(ResponseEnum::SINGLE, $product)
 				->withStatus(ResponseHelper::OK);
-		} catch (InvalidValueException $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-				'validation' => $e->getErrors(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
 		} catch (Exception $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
 		}
 	}
 
@@ -127,17 +122,11 @@ class ProductController extends BaseAuthController
 
 			$product = $this->service->update($id, $valueObject);
 
-			return $response->writeJsonBody($product->toArray())
+			return $response
+				->withAttribute(ResponseEnum::SINGLE, $product)
 				->withStatus(ResponseHelper::OK);
-		} catch (InvalidValueException $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-				'validation' => $e->getErrors(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
 		} catch (Exception $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
 		}
 	}
 }

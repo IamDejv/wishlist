@@ -8,8 +8,10 @@ use Apitte\Core\Annotation\Controller\Path;
 use Apitte\Core\Annotation\Controller\RequestBody;
 use Apitte\Core\Annotation\Controller\Responses;
 use Apitte\Core\Annotation\Controller\Response;
+use Apitte\Core\Exception\Api\ClientErrorException;
 use Apitte\Core\Http\ApiRequest;
 use Apitte\Core\Http\ApiResponse;
+use App\Enum\ResponseEnum;
 use App\Helpers\ResponseHelper;
 use App\Model\Factory\UserFactory;
 use App\Model\ResponseMapper\UserResponseMapper;
@@ -48,16 +50,13 @@ class MeController extends BaseAuthController
 			$firebaseUid = $this->tokenService->getFirebaseUidFromToken($tokenHeader[0]);
 			$user = $this->userService->getById($firebaseUid);
 
-			return $response->writeJsonBody($user->toArray())
+			return $response
+				->withAttribute(ResponseEnum::SINGLE, $user)
 				->withStatus(ResponseHelper::OK);
 		} catch (EntityNotFoundException $e) {
-			return $response->writeJsonBody([
-				'message' => "User does not exist",
-			])->withStatus(ResponseHelper::NOT_FOUND);
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::NOT_FOUND, $e);
 		} catch (Exception $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-			])->withStatus(ResponseHelper::UNAUTHORIZED);
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::UNAUTHORIZED, $e);
 		}
 	}
 
@@ -85,17 +84,11 @@ class MeController extends BaseAuthController
 
 			$user = $this->userService->updateMe($firebaseUid, $userValueObject);
 
-			return $response->writeJsonBody($user)
+			return $response
+				->withAttribute(ResponseEnum::SINGLE, $user)
 				->withStatus(ResponseHelper::OK);
-		} catch (InvalidValueException $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-				'validation' => $e->getErrors(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
 		} catch (Exception $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
 		}
 	}
 }

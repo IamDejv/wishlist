@@ -14,15 +14,20 @@ api:
 			Apitte\Middlewares\DI\MiddlewaresPlugin:
 			Apitte\Core\DI\Plugin\CoreDecoratorPlugin:
 			Apitte\Core\DI\Plugin\CoreMappingPlugin:
-			Apitte\Negotiation\DI\NegotiationPlugin:
 			Apitte\Debug\DI\DebugPlugin:
 
 services:
 	decorator.response.cors:
 		class: App\Decorator\Response\CorsDecorator
 		tags: [apitte.core.decorator: [priority: 60, type: handler.after]]
+	decorator.response.responseMaper:
+		class: App\Decorator\Response\ResponseMapperDecorator
+		tags: [apitte.core.decorator: [priority: 60, type: handler.after]]
 	decorator.error.exception:
 		class: App\Decorator\Exception\ExceptionDecorator
+		tags: [apitte.core.decorator: [priority: 60, type: handler.after]]
+	decorator.request.pagination:
+		class: App\Decorator\Request\PaginationDecorator
 		tags: [apitte.core.decorator: [priority: 60, type: handler.after]]
 
 resource:

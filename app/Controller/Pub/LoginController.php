@@ -8,8 +8,10 @@ use Apitte\Core\Annotation\Controller\Path;
 use Apitte\Core\Annotation\Controller\RequestBody;
 use Apitte\Core\Annotation\Controller\Responses;
 use Apitte\Core\Annotation\Controller\Response;
+use Apitte\Core\Exception\Api\ClientErrorException;
 use Apitte\Core\Http\ApiRequest;
 use Apitte\Core\Http\ApiResponse;
+use App\Enum\ResponseEnum;
 use Exception;
 use App\Helpers\ResponseHelper;
 use Kreait\Firebase\Exception\AuthException;
@@ -49,17 +51,11 @@ class LoginController extends BasePubController
 
 			$user = $this->userService->signUp($userValueObject, $token[0]);
 
-			return $response->writeJsonBody($user->toArray())
-				->withStatus(ResponseHelper::OK);
-		} catch (InvalidValueException $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-				'validation' => $e->getErrors(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
-		} catch (Exception|AuthException|FirebaseException $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
+			return $response
+				->withStatus(ResponseHelper::OK)
+				->withAttribute(ResponseEnum::SINGLE, $user);
+		} catch (Exception|AuthException|FirebaseException|InvalidValueException $e) {
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
 		}
 	}
 }

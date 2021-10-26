@@ -222,4 +222,9 @@ class User extends BaseEntity
 			"lastname" => $this->getLastname(),
 		];
 	}
+
+	public function addFriend(User $newFriend)
+	{
+		$this->myFriends->add($newFriend);
+	}
 }

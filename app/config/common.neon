@@ -30,6 +30,5 @@ includes:
 	- console.neon
 	- nettrine.neon
 	- factory.services.neon
-	- response.services.neon
 	- hydrator.services.neon
 	- firebase.neon

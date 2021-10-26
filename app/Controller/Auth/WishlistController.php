@@ -10,11 +10,11 @@ use Apitte\Core\Annotation\Controller\RequestParameters;
 use Apitte\Core\Annotation\Controller\RequestParameter;
 use Apitte\Core\Annotation\Controller\Responses;
 use Apitte\Core\Annotation\Controller\Response;
+use Apitte\Core\Exception\Api\ClientErrorException;
 use Apitte\Core\Http\ApiRequest;
 use Apitte\Core\Http\ApiResponse;
 use App\Helpers\ResponseHelper;
 use App\Service\WishlistService;
-use App\ValueObject\Exception\InvalidValueException;
 use App\ValueObject\WishlistValueObject;
 use Doctrine\ORM\EntityNotFoundException;
 use Exception;
@@ -62,9 +62,7 @@ class WishlistController extends BaseAuthController
 
 			return $apiResponse->writeJsonBody($wishlist->toArray());
 		} catch (EntityNotFoundException|Exception $e) {
-			return $apiResponse->writeJsonBody([
-				'message' => $e->getMessage(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
 		}
 	}
 
@@ -90,15 +88,8 @@ class WishlistController extends BaseAuthController
 
 			return $response->writeJsonBody($wishlist->toArray())
 				->withStatus(ResponseHelper::OK);
-		} catch (InvalidValueException $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-				'validation' => $e->getErrors(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
 		} catch (Exception $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
 		}
 	}
 
@@ -129,15 +120,8 @@ class WishlistController extends BaseAuthController
 
 			return $response->writeJsonBody($wishlist->toArray())
 				->withStatus(ResponseHelper::OK);
-		} catch (InvalidValueException $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-				'validation' => $e->getErrors(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
 		} catch (Exception $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
 		}
 	}
 }

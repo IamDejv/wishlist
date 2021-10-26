@@ -30,12 +30,6 @@ class GroupValueObject extends ValueObject
 	public string $type;
 
 	/**
-	 * @var bool
-	 * @Assert\Type("bool")
-	 */
-	public bool $public;
-
-	/**
 	 * @return string
 	 */
 	public function getName(): string
@@ -81,21 +75,5 @@ class GroupValueObject extends ValueObject
 	public function setType(string $type): void
 	{
 		$this->type = $type;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function isPublic(): bool
-	{
-		return $this->public;
-	}
-
-	/**
-	 * @param bool $public
-	 */
-	public function setPublic(bool $public): void
-	{
-		$this->public = $public;
 	}
 }

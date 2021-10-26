@@ -10,8 +10,10 @@ use Apitte\Core\Annotation\Controller\RequestParameters;
 use Apitte\Core\Annotation\Controller\RequestParameter;
 use Apitte\Core\Annotation\Controller\Responses;
 use Apitte\Core\Annotation\Controller\Response;
+use Apitte\Core\Exception\Api\ClientErrorException;
 use Apitte\Core\Http\ApiRequest;
 use Apitte\Core\Http\ApiResponse;
+use App\Enum\ResponseEnum;
 use App\Helpers\ResponseHelper;
 use App\Service\GroupService;
 use App\ValueObject\Exception\InvalidValueException;
@@ -38,7 +40,8 @@ class GroupController extends BaseAuthController
 	 */
 	public function listAll(ApiRequest $request, ApiResponse $response): ApiResponse
 	{
-		return $response->writeJsonBody($this->service->getAll())
+		return $response
+			->withAttribute(ResponseEnum::MULTIPLE, $this->service->getAll())
 			->withStatus(ResponseHelper::OK);
 	}
 
@@ -60,7 +63,7 @@ class GroupController extends BaseAuthController
 
 			$group = $this->service->get($id);
 
-			return $apiResponse->writeJsonBody($group->toArray());
+			return $apiResponse->withAttribute(ResponseEnum::SINGLE, $group);
 		} catch (EntityNotFoundException|Exception $e) {
 			return $apiResponse->writeJsonBody([
 				'message' => $e->getMessage(),
@@ -88,17 +91,11 @@ class GroupController extends BaseAuthController
 
 			$group = $this->service->create($valueObject);
 
-			return $response->writeJsonBody($group->toArray())
+			return $response
+				->withAttribute(ResponseEnum::SINGLE, $group)
 				->withStatus(ResponseHelper::OK);
-		} catch (InvalidValueException $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-				'validation' => $e->getErrors(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
 		} catch (Exception $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
 		}
 	}
 
@@ -127,17 +124,11 @@ class GroupController extends BaseAuthController
 
 			$group = $this->service->update($id, $valueObject);
 
-			return $response->writeJsonBody($group->toArray())
+			return $response
+				->withAttribute(ResponseEnum::SINGLE, $group)
 				->withStatus(ResponseHelper::OK);
-		} catch (InvalidValueException $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-				'validation' => $e->getErrors(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
 		} catch (Exception $e) {
-			return $response->writeJsonBody([
-				'message' => $e->getMessage(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
 		}
 	}
 }
