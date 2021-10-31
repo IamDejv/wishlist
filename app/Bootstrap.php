@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App;
 
 use App\Model\Entity\Enums\GroupEnumType;
+use App\Model\Entity\Enums\ImageEnumType;
 use Doctrine\DBAL\Types\Type;
 use Nette\Bootstrap\Configurator;
 
@@ -27,6 +28,7 @@ class Bootstrap
 
 		// Doctrine types
 		Type::addType("GroupType", GroupEnumType::class);
+		Type::addType("ImageType", ImageEnumType::class);
 
 		return $configurator;
 	}

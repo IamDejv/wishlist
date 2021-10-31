@@ -8,7 +8,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 class ProductValueObject extends ValueObject
 {
 	/**
-	 * @var string
 	 * @Assert\NotNull()
 	 * @Assert\NotBlank()
 	 * @Assert\Type("string")
@@ -16,21 +15,18 @@ class ProductValueObject extends ValueObject
 	public string $name;
 
 	/**
-	 * @var string
 	 * @Assert\NotNull()
 	 * @Assert\NotBlank()
 	 * @Assert\Type("string")
 	 */
-	public string $desc;
+	public string $description;
 
 	/**
-	 * @var string
 	 * @Assert\Type("string")
 	 */
 	public string $image;
 
 	/**
-	 * @var string
 	 * @Assert\Type("string")
 	 */
 	public string $url;
@@ -41,55 +37,37 @@ class ProductValueObject extends ValueObject
 	public float $price;
 
 	/**
-	 * @Assert\Type("array")
+	 * @Assert\Type("int")
 	 */
-	public array $categories;
+	public int $wishlistId;
 
-	/**
-	 * @return string
-	 */
 	public function getName(): string
 	{
 		return $this->name;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getDesc(): string
+	public function getDescription(): string
 	{
-		return $this->desc;
+		return $this->description;
 	}
 
-	/**
-	 * @return string
-	 */
 	public function getImage(): string
 	{
 		return $this->image;
 	}
 
-	/**
-	 * @return string
-	 */
 	public function getUrl(): string
 	{
 		return $this->url;
 	}
 
-	/**
-	 * @return float
-	 */
 	public function getPrice(): float
 	{
 		return $this->price;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getCategories(): array
+	public function getWishlistId(): int
 	{
-		return $this->categories;
+		return $this->wishlistId;
 	}
 }

@@ -13,6 +13,7 @@ use Apitte\Core\Annotation\Controller\Response;
 use Apitte\Core\Exception\Api\ClientErrorException;
 use Apitte\Core\Http\ApiRequest;
 use Apitte\Core\Http\ApiResponse;
+use App\Enum\ResponseEnum;
 use App\Helpers\ResponseHelper;
 use App\Service\WishlistService;
 use App\ValueObject\WishlistValueObject;
@@ -38,7 +39,8 @@ class WishlistController extends BaseAuthController
 	 */
 	public function listAll(ApiRequest $request, ApiResponse $response): ApiResponse
 	{
-		return $response->writeJsonBody($this->service->getAll())
+		return $response
+			->withAttribute(ResponseEnum::MULTIPLE, $this->service->getAll())
 			->withStatus(ResponseHelper::OK);
 	}
 
@@ -60,7 +62,35 @@ class WishlistController extends BaseAuthController
 
 			$wishlist = $this->service->get($id);
 
-			return $apiResponse->writeJsonBody($wishlist->toArray());
+			return $apiResponse
+				->withStatus(ResponseHelper::OK)
+				->withAttribute(ResponseEnum::SINGLE, $wishlist);
+		} catch (EntityNotFoundException|Exception $e) {
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
+		}
+	}
+
+	/**
+	 * @Path("/{id}/products")
+	 * @Method("GET")
+	 * @RequestParameters({
+	 * 		@RequestParameter(name="id", type="int")
+	 *})
+	 *
+	 * @param ApiRequest $apiRequest
+	 * @param ApiResponse $apiResponse
+	 * @return ApiResponse
+	 */
+	public function getProducts(ApiRequest $apiRequest, ApiResponse $apiResponse): ApiResponse
+	{
+		try {
+			$id = $apiRequest->getParameter('id');
+
+			$products = $this->service->getProducts($id);
+
+			return $apiResponse
+				->withStatus(ResponseHelper::OK)
+				->withAttribute(ResponseEnum::MULTIPLE, $products);
 		} catch (EntityNotFoundException|Exception $e) {
 			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
 		}
@@ -86,7 +116,8 @@ class WishlistController extends BaseAuthController
 
 			$wishlist = $this->service->create($valueObject);
 
-			return $response->writeJsonBody($wishlist->toArray())
+			return $response
+				->withAttribute(ResponseEnum::SINGLE, $wishlist)
 				->withStatus(ResponseHelper::OK);
 		} catch (Exception $e) {
 			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
@@ -118,7 +149,8 @@ class WishlistController extends BaseAuthController
 
 			$wishlist = $this->service->update($id, $valueObject);
 
-			return $response->writeJsonBody($wishlist->toArray())
+			return $response
+				->withAttribute(ResponseEnum::SINGLE, $wishlist)
 				->withStatus(ResponseHelper::OK);
 		} catch (Exception $e) {
 			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);

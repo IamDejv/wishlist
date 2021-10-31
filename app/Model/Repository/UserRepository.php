@@ -3,8 +3,10 @@ declare(strict_types=1);
 
 namespace App\Model\Repository;
 
+use App\Model\Entity\User;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Query\Expr\Join;
+use Doctrine\ORM\Query\ResultSetMapping;
 
 class UserRepository extends BaseRepository
 {
@@ -56,6 +58,67 @@ class UserRepository extends BaseRepository
 
 	public function findFriends(string $id)
 	{
-		$qb = $this->createQueryBuilder("u");
+		$rsm = new ResultSetMapping();
+		$rsm->addScalarResult('friend', 'friend');
+
+		$qb = $this
+			->_em
+			->createNativeQuery("
+				SELECT IF(f.friend_user_id = '$id', f.user_id, f.friend_user_id) as friend
+				FROM friends as f
+				WHERE f.user_id = '$id'
+				OR f.friend_user_id = '$id';
+			", $rsm);
+
+		return $qb->getResult();
+	}
+
+
+	/**
+	 * @param int $id
+	 * @return User[]
+	 */
+	public function getGroupUsers(int $id): array
+	{
+		$rsm = new ResultSetMapping();
+		$rsm->addEntityResult(User::class, "u");
+		$rsm->addFieldResult('u', 'id', 'id');
+		$rsm->addFieldResult('u', 'firstname', 'firstname');
+		$rsm->addFieldResult('u', 'lastname', 'lastname');
+		$rsm->addFieldResult('u', 'email', 'email');
+
+		$qb = $this->_em->createNativeQuery("
+			SELECT u.firstname, u.lastname, u.id, u.email
+			FROM users_groups as ug
+			LEFT JOIN users AS u ON ug.user_id = u.id
+			WHERE ug.group_id = '$id'
+			",
+			$rsm);
+
+		return $qb->getResult();
+	}
+
+	public function getUserFriends(string $id)
+	{
+		$rsm = new ResultSetMapping();
+		$rsm->addEntityResult(User::class, "u");
+		$rsm->addFieldResult('u', 'id', 'id');
+		$rsm->addFieldResult('u', 'firstname', 'firstname');
+		$rsm->addFieldResult('u', 'lastname', 'lastname');
+		$rsm->addFieldResult('u', 'email', 'email');
+
+		$qb = $this->_em->createNativeQuery("
+			SELECT *
+			FROM users as u
+			WHERE u.id IN (
+				SELECT IF(f.friend_user_id = '$id', f.user_id, f.friend_user_id)
+				FROM friends as f
+				WHERE f.user_id = '$id'
+				OR f.friend_user_id = '$id'
+			)
+			",
+			$rsm);
+
+		return $qb->getResult();
 	}
 }

@@ -12,7 +12,7 @@ use JetBrains\PhpStorm\Pure;
 
 /**
  * @ORM\Entity(repositoryClass="App\Model\Repository\ProductRepository")
- * @ORM\Table(name="`products`", uniqueConstraints={@ORM\UniqueConstraint(name="name", columns={"name"})})
+ * @ORM\Table(name="`products`")
  * @ORM\HasLifecycleCallbacks
  */
 class Product extends BaseEntity
@@ -27,7 +27,7 @@ class Product extends BaseEntity
 	/**
 	 * @ORM\Column(type="text", nullable=false)
 	 */
-	private string $desc;
+	private string $description;
 
 	/**
 	 * @ORM\Column(type="string", nullable=true)
@@ -45,24 +45,16 @@ class Product extends BaseEntity
 	private ?float $price;
 
 	/**
+	 * @ORM\Column(type="boolean")
+	 */
+	private bool $reserved;
+
+	/**
 	 * Many features have one product. This is the owning side.
 	 * @ORM\ManyToOne(targetEntity="Wishlist", inversedBy="products")
 	 * @ORM\JoinColumn(name="wishlist_id", referencedColumnName="id")
 	 */
 	private Wishlist $wishlist;
-
-	/**
-	 * Many Products have Many Categories.
-	 * @ORM\ManyToMany(targetEntity="Category", inversedBy="products")
-	 * @ORM\JoinTable(name="products_categories")
-	 */
-	private Collection $categories;
-
-	#[Pure]
-	public function __construct()
-	{
-		$this->categories = new ArrayCollection();
-	}
 
 	/**
 	 * @return string
@@ -78,22 +70,6 @@ class Product extends BaseEntity
 	public function setName(string $name): void
 	{
 		$this->name = $name;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getDesc(): string
-	{
-		return $this->desc;
-	}
-
-	/**
-	 * @param string $desc
-	 */
-	public function setDesc(string $desc): void
-	{
-		$this->desc = $desc;
 	}
 
 	/**
@@ -144,26 +120,66 @@ class Product extends BaseEntity
 		$this->price = $price;
 	}
 
-	public function getCategories(): ArrayCollection|Collection
+	/**
+	 * @return Wishlist
+	 */
+	public function getWishlist(): Wishlist
 	{
-		return $this->categories;
+		return $this->wishlist;
 	}
 
-	public function addCategory(Category $category)
+	/**
+	 * @return string
+	 */
+	public function getDescription(): string
 	{
-		$this->categories->add($category);
+		return $this->description;
+	}
+
+	/**
+	 * @param string $description
+	 */
+	public function setDescription(string $description): void
+	{
+		$this->description = $description;
+	}
+
+	/**
+	 * @param Wishlist $wishlist
+	 */
+	public function setWishlist(Wishlist $wishlist): void
+	{
+		$this->wishlist = $wishlist;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isReserved(): bool
+	{
+		return $this->reserved;
+	}
+
+	/**
+	 * @param bool $reserved
+	 */
+	public function setReserved(bool $reserved): void
+	{
+		$this->reserved = $reserved;
 	}
 
 	#[Pure]
-	#[ArrayShape(["name" => "string", "desc" => "string", "url" => "null|string", "image" => "null|string", "price" => "float|null"])]
+	#[ArrayShape(["id" => "int", "name" => "string", "description" => "string", "url" => "null|string", "image" => "null|string", "price" => "float|null", "reserved" => "bool"])]
 	public function toArray(): array
 	{
 		return [
-			"name" => $this->getName(),
-			"desc" => $this->getDesc(),
-			"url" => $this->getUrl(),
-			"image" => $this->getImage(),
-			"price" => $this->getPrice(),
+			"id" => $this->id,
+			"name" => $this->name,
+			"description" => $this->description,
+			"url" => $this->url,
+			"image" => $this->image,
+			"price" => $this->price,
+			"reserved" => $this->reserved,
 		];
 	}
 }

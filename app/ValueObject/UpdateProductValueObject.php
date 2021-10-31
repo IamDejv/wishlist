@@ -5,15 +5,8 @@ namespace App\ValueObject;
 
 use Symfony\Component\Validator\Constraints as Assert;
 
-class WishlistValueObject extends ValueObject
+class UpdateProductValueObject extends ValueObject
 {
-	/**
-	 * @Assert\NotNull()
-	 * @Assert\NotBlank()
-	 * @Assert\Type("string")
-	 */
-	public string $user;
-
 	/**
 	 * @Assert\NotNull()
 	 * @Assert\NotBlank()
@@ -26,20 +19,45 @@ class WishlistValueObject extends ValueObject
 	 * @Assert\NotBlank()
 	 * @Assert\Type("string")
 	 */
+	public string $description;
+
+	/**
+	 * @Assert\Type("string")
+	 */
 	public string $image;
 
-	public function getUser(): string
-	{
-		return $this->user;
-	}
+	/**
+	 * @Assert\Type("string")
+	 */
+	public string $url;
+
+	/**
+	 * @Assert\Type("float")
+	 */
+	public float $price;
 
 	public function getName(): string
 	{
 		return $this->name;
 	}
 
+	public function getDescription(): string
+	{
+		return $this->description;
+	}
+
 	public function getImage(): string
 	{
 		return $this->image;
+	}
+
+	public function getUrl(): string
+	{
+		return $this->url;
+	}
+
+	public function getPrice(): float
+	{
+		return $this->price;
 	}
 }

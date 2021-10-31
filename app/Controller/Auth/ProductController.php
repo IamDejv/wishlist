@@ -17,6 +17,7 @@ use App\Enum\ResponseEnum;
 use App\Helpers\ResponseHelper;
 use App\Service\ProductService;
 use App\ValueObject\ProductValueObject;
+use App\ValueObject\UpdateProductValueObject;
 use Doctrine\ORM\EntityNotFoundException;
 use Exception;
 
@@ -70,6 +71,31 @@ class ProductController extends BaseAuthController
 	}
 
 	/**
+	 * @Path("/{id}")
+	 * @Method("DELETE")
+	 * @RequestParameters({
+	 * 		@RequestParameter(name="id", type="int")
+	 *})
+	 *
+	 * @param ApiRequest $apiRequest
+	 * @param ApiResponse $apiResponse
+	 * @return ApiResponse
+	 */
+	public function delete(ApiRequest $apiRequest, ApiResponse $apiResponse): ApiResponse
+	{
+		try {
+			$id = $apiRequest->getParameter('id');
+
+			$this->service->delete($id);
+
+			return $apiResponse
+				->withStatus(ResponseHelper::NO_CONTENT);
+		} catch (EntityNotFoundException | Exception $e) {
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
+		}
+	}
+
+	/**
 	 * @Path("/")
 	 * @Method("POST")
 	 * @Responses({
@@ -106,7 +132,7 @@ class ProductController extends BaseAuthController
 	 * @Responses({
 	 * 		@Response(code="200", description="Success")
 	 * })
-	 * @RequestBody(entity="App\ValueObject\ProductValueObject")
+	 * @RequestBody(entity="App\ValueObject\UpdateProductValueObject")
 	 *
 	 * @param ApiRequest $request
 	 * @param ApiResponse $response
@@ -117,7 +143,7 @@ class ProductController extends BaseAuthController
 		try {
 			$id = $request->getParameter('id');
 
-			/** @var ProductValueObject $valueObject */
+			/** @var UpdateProductValueObject $valueObject */
 			$valueObject = $this->getRequestEntity($request);
 
 			$product = $this->service->update($id, $valueObject);

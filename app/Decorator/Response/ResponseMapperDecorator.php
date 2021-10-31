@@ -37,6 +37,10 @@ class ResponseMapperDecorator implements IResponseDecorator
 			$result = $data->toArray();
 		}
 
+		if ($response->hasAttribute(ResponseEnum::SIMPLE)) {
+			$result = $response->getAttribute(ResponseEnum::SIMPLE);
+		}
+
 		$response->writeJsonBody($result);
 
 		return $response;

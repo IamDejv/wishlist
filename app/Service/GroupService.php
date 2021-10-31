@@ -4,9 +4,11 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Model\Entity\Group;
+use App\Model\Entity\User;
 use App\Model\Factory\GroupFactory;
 use App\Model\Hydrator\GroupHydrator;
 use App\Model\Repository\GroupRepository;
+use App\ValueObject\ActionUserValueObject;
 use App\ValueObject\GroupValueObject;
 use Doctrine\ORM\EntityNotFoundException;
 use Nettrine\ORM\EntityManagerDecorator;
@@ -17,7 +19,8 @@ class GroupService extends BaseService
 		protected EntityManagerDecorator $em,
 		protected GroupRepository $repository,
 		private GroupHydrator $hydrator,
-		private GroupFactory $factory
+		private GroupFactory $factory,
+		private UserService $userService
 	) {
 		parent::__construct($this->repository);
 	}
@@ -42,11 +45,21 @@ class GroupService extends BaseService
 		return $group;
 	}
 
+	/**
+	 * @param GroupValueObject $valueObject
+	 * @return Group|null
+	 * @throws EntityNotFoundException
+	 */
 	public function create(GroupValueObject $valueObject): ?Group
 	{
 		$group = $this->factory->create($valueObject);
 
 		$this->em->persist($group);
+
+		$user = $this->userService->getById($valueObject->getUser());
+
+		$user->addGroup($group);
+
 		$this->em->flush();
 
 		return $group;
@@ -72,5 +85,39 @@ class GroupService extends BaseService
 		$this->em->flush();
 
 		return $group;
+	}
+
+	/**
+	 * @param int $id
+	 * @return array
+	 */
+	public function getGroupUsers(int $id): array
+	{
+		return $this->em
+			->getRepository(User::class)
+			->getGroupUsers($id);
+	}
+
+	/**
+	 * @param int $id
+	 * @param ActionUserValueObject $valueObject
+	 * @return User
+	 * @throws EntityNotFoundException
+	 */
+	public function actionUser(int $id, ActionUserValueObject $valueObject): User
+	{
+		$group = $this->get($id);
+
+		$user = $this->userService->getById($valueObject->getId());
+
+		if ($valueObject->getAction() === "addToGroup") {
+			$user->addGroup($group);
+		} else if ($valueObject->getAction() === "removeFromGroup") {
+			$user->removeGroup($group);
+		}
+
+		$this->em->flush();
+
+		return $user;
 	}
 }

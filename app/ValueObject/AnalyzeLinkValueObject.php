@@ -5,19 +5,19 @@ namespace App\ValueObject;
 
 use Symfony\Component\Validator\Constraints as Assert;
 
-class AddFriendValueObject extends ValueObject
+class AnalyzeLinkValueObject extends ValueObject
 {
 	/**
 	 * @Assert\Type("string")
 	 * @Assert\NotBlank
 	 */
-	public string $id;
+	public string $link;
 
 	/**
 	 * @return string
 	 */
-	public function getId(): string
+	public function getLink(): string
 	{
-		return $this->id;
+		return $this->link;
 	}
 }

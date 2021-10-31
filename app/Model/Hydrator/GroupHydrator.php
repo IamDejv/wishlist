@@ -4,12 +4,9 @@ declare(strict_types=1);
 namespace App\Model\Hydrator;
 
 use App\Model\Entity\BaseEntity;
-use App\Model\Entity\Category;
 use App\Model\Entity\Group;
 use App\Model\Entity\Product;
-use App\Model\EntityManager;
 use App\ValueObject\GroupValueObject;
-use App\ValueObject\ProductValueObject;
 use App\ValueObject\ValueObjectInterface;
 
 class GroupHydrator implements HydratorInterface
@@ -23,11 +20,13 @@ class GroupHydrator implements HydratorInterface
 	{
 		if (is_null($entity)) {
 			$entity = new Group();
+			$entity->setActive(false);
+			$entity->setArchived(false);
 		}
 
 		$entity->setName($valueObject->getName());
+		$entity->setImage($valueObject->getImage());
 		$entity->setDescription($valueObject->getDescription());
-		$entity->setPublic($valueObject->isPublic());
 		$entity->setType($valueObject->getType());
 
 		return $entity;

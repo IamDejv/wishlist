@@ -21,6 +21,8 @@ di:
 services:
 	tokenService:
 		class: App\Service\TokenService
+	linkAnalyzer:
+		class: App\Util\LinkAnalyzer
 
 api:
 	catchException: true # Sets if exception should be catched and transformed into response or rethrown to output (debug only)

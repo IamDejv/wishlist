@@ -8,6 +8,8 @@ use App\Model\Factory\WishlistFactory;
 use App\Model\Hydrator\WishlistHydrator;
 use App\Model\Repository\WishlistRepository;
 use App\ValueObject\WishlistValueObject;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityNotFoundException;
 use Nettrine\ORM\EntityManagerDecorator;
 
@@ -77,5 +79,21 @@ class WishlistService extends BaseService
 		$this->em->flush();
 
 		return $wishlist;
+	}
+
+	/**
+	 * @param int $id
+	 * @return ArrayCollection|Collection
+	 * @throws EntityNotFoundException
+	 */
+	public function getProducts(int $id): ArrayCollection|Collection
+	{
+		$wishlist = $this->repository->find($id);
+
+		if (!$wishlist instanceof Wishlist) {
+			throw new EntityNotFoundException();
+		}
+
+		return $wishlist->getProducts();
 	}
 }

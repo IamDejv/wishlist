@@ -70,7 +70,7 @@ class User extends BaseEntity
 
 	/**
 	 * One product has many features. This is the inverse side.
-	 * @ORM\OneToMany(targetEntity="Wishlist", mappedBy="user")
+	 * @ORM\OneToMany(targetEntity="Wishlist", mappedBy="owner")
 	 */
 	private Collection $wishlists;
 
@@ -223,8 +223,23 @@ class User extends BaseEntity
 		];
 	}
 
-	public function addFriend(User $newFriend)
+	public function addFriend(User $newFriend): void
 	{
 		$this->myFriends->add($newFriend);
+	}
+
+	public function removeFriend(User $friend): void
+	{
+		$this->myFriends->removeElement($friend);
+	}
+
+	public function addGroup(Group $group): void
+	{
+		$this->groups->add($group);
+	}
+
+	public function removeGroup(Group $group)
+	{
+		$this->groups->removeElement($group);
 	}
 }

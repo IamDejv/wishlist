@@ -16,7 +16,7 @@ use Apitte\Core\Http\ApiResponse;
 use App\Enum\ResponseEnum;
 use App\Helpers\ResponseHelper;
 use App\Service\GroupService;
-use App\ValueObject\Exception\InvalidValueException;
+use App\ValueObject\ActionUserValueObject;
 use App\ValueObject\GroupValueObject;
 use Doctrine\ORM\EntityNotFoundException;
 use Exception;
@@ -65,9 +65,7 @@ class GroupController extends BaseAuthController
 
 			return $apiResponse->withAttribute(ResponseEnum::SINGLE, $group);
 		} catch (EntityNotFoundException|Exception $e) {
-			return $apiResponse->writeJsonBody([
-				'message' => $e->getMessage(),
-			])->withStatus(ResponseHelper::BAD_REQUEST);
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
 		}
 	}
 
@@ -126,6 +124,69 @@ class GroupController extends BaseAuthController
 
 			return $response
 				->withAttribute(ResponseEnum::SINGLE, $group)
+				->withStatus(ResponseHelper::OK);
+		} catch (Exception $e) {
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
+		}
+	}
+
+	/**
+	 * @Path("/{id}/users")
+	 * @Method("GET")
+	 * @RequestParameters({
+	 * 		@RequestParameter(name="id", type="int")
+	 *})
+	 * @Responses({
+	 * 		@Response(code="200", description="Success")
+	 * })
+	 *
+	 * @param ApiRequest $request
+	 * @param ApiResponse $response
+	 * @return ApiResponse
+	 */
+	public function getUsers(ApiRequest $request, ApiResponse $response): ApiResponse
+	{
+		try {
+			$id = $request->getParameter('id');
+
+			$users = $this->service->getGroupUsers($id);
+
+			return $response
+				->withAttribute(ResponseEnum::MULTIPLE, $users)
+				->withStatus(ResponseHelper::OK);
+		} catch (Exception $e) {
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
+		}
+	}
+
+	/**
+	 * @Path("/{id}/users")
+	 * @Method("PUT")
+	 * @RequestParameters({
+	 * 		@RequestParameter(name="id", type="int")
+	 *})
+	 * @Responses({
+	 * 		@Response(code="200", description="Success")
+	 * })
+	 *
+	 * @RequestBody(entity="App\ValueObject\ActionUserValueObject")
+	 *
+	 * @param ApiRequest $request
+	 * @param ApiResponse $response
+	 * @return ApiResponse
+	 */
+	public function addUser(ApiRequest $request, ApiResponse $response): ApiResponse
+	{
+		try {
+			$id = $request->getParameter('id');
+
+			/** @var ActionUserValueObject $valueObject */
+			$valueObject = $this->getRequestEntity($request);
+
+			$user = $this->service->actionUser($id, $valueObject);
+
+			return $response
+				->withAttribute(ResponseEnum::SINGLE, $user)
 				->withStatus(ResponseHelper::OK);
 		} catch (Exception $e) {
 			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);

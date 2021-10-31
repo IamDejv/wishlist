@@ -8,6 +8,8 @@ use Apitte\Core\Annotation\Controller\Path;
 use Apitte\Core\Annotation\Controller\RequestBody;
 use Apitte\Core\Annotation\Controller\RequestParameters;
 use Apitte\Core\Annotation\Controller\RequestParameter;
+use Apitte\Core\Annotation\Controller\Responses;
+use Apitte\Core\Annotation\Controller\Response;
 use Apitte\Core\Annotation\Controller\Tag;
 use Apitte\Core\Exception\Api\ClientErrorException;
 use Apitte\Core\Http\ApiRequest;
@@ -15,9 +17,11 @@ use Apitte\Core\Http\ApiResponse;
 use App\Enum\RequestEnum;
 use App\Enum\ResponseEnum;
 use App\Helpers\ResponseHelper;
+use App\Service\ProductService;
 use App\Service\TokenService;
 use App\Service\UserService;
-use App\ValueObject\AddFriendValueObject;
+use App\ValueObject\ActionFriendValueObject;
+use Doctrine\ORM\EntityNotFoundException;
 use Exception;
 
 /**
@@ -25,7 +29,10 @@ use Exception;
  */
 class UsersController extends BaseAuthController
 {
-	public function __construct(private UserService $service, private TokenService $tokenService)
+	public function __construct(
+		private UserService    $service,
+		private TokenService   $tokenService,
+		private ProductService $productService)
 	{
 	}
 
@@ -124,25 +131,59 @@ class UsersController extends BaseAuthController
 	 * 		@RequestParameter(name="id", type="string")
 	 *})
 	 *
-	 * @RequestBody(entity="App\ValueObject\AddFriendValueObject")
+	 * @RequestBody(entity="App\ValueObject\ActionFriendValueObject")
 	 *
 	 * @param ApiRequest $request
 	 * @param ApiResponse $response
 	 * @return ApiResponse
 	 */
-	public function addFriend(ApiRequest $request, ApiResponse $response): ApiResponse
+	public function actionFriend(ApiRequest $request, ApiResponse $response): ApiResponse
 	{
 		try {
-			/** @var AddFriendValueObject $addFriendValueObject */
-			$addFriendValueObject = $this->getRequestEntity($request);
+			/** @var ActionFriendValueObject $actionFriendValueObject */
+			$actionFriendValueObject = $this->getRequestEntity($request);
 
 			$id = $request->getParameter('id');
 
-			$this->service->addFriend($id, $addFriendValueObject);
+			$friend = $this->service->actionFriend($id, $actionFriendValueObject);
 			return $response
-				->withStatus(ResponseHelper::NO_CONTENT);
+				->withAttribute(ResponseEnum::SINGLE, $friend)
+				->withStatus(ResponseHelper::OK);
 		} catch (Exception $e) {
 			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
 		}
 	}
+
+	/**
+	 * @Path("/{id}/products")
+	 * @Method("GET")
+	 * @RequestParameters({
+	 * 		@RequestParameter(name="id", type="string")
+	 *})
+	 *
+	 * @Responses({
+	 *     @Response(code="200", description="Success")
+	 * })
+	 *
+	 * @param ApiRequest $request
+	 * @param ApiResponse $response
+	 * @return ApiResponse
+	 */
+	public function getProducts(ApiRequest $request, ApiResponse $response): ApiResponse
+	{
+		try {
+			$id = $request->getParameter('id');
+
+			$products = $this->productService->getProductsFromUserActiveWishlist($id);
+
+			return $response
+				->withAttribute(ResponseEnum::MULTIPLE, $products)
+				->withStatus(ResponseHelper::OK);
+		} catch (EntityNotFoundException $e) {
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::NOT_FOUND, $e);
+		} catch (Exception $e) {
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::UNAUTHORIZED, $e);
+		}
+	}
+
 }

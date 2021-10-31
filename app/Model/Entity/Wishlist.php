@@ -28,9 +28,29 @@ class Wishlist extends BaseEntity
 	/**
 	 * Many features have one product. This is the owning side.
 	 * @ORM\ManyToOne(targetEntity="User", inversedBy="wishlists")
-	 * @ORM\JoinColumn(name="user_id", referencedColumnName="id")
+	 * @ORM\JoinColumn(name="owner_id", referencedColumnName="id")
 	 */
 	private User $owner;
+
+	/**
+	 * @ORM\Column(type="string", nullable=false)
+	 */
+	private string $image;
+
+	/**
+	 * @ORM\Column(type="string", nullable=false)
+	 */
+	private string $name;
+
+	/**
+	 * @ORM\Column(type="boolean", nullable=false)
+	 */
+	private bool $archived;
+
+	/**
+	 * @ORM\Column(type="boolean", nullable=false)
+	 */
+	private bool $active;
 
 	#[Pure]
 	public function __construct()
@@ -70,13 +90,78 @@ class Wishlist extends BaseEntity
 		$this->owner = $owner;
 	}
 
-	#[Pure]
-	#[ArrayShape(["id" => "int", "user" => "string"])]
+	/**
+	 * @return bool
+	 */
+	public function isArchived(): bool
+	{
+		return $this->archived;
+	}
+
+	/**
+	 * @param bool $archived
+	 */
+	public function setArchived(bool $archived): void
+	{
+		$this->archived = $archived;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isActive(): bool
+	{
+		return $this->active;
+	}
+
+	/**
+	 * @param bool $active
+	 */
+	public function setActive(bool $active): void
+	{
+		$this->active = $active;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getImage(): string
+	{
+		return $this->image;
+	}
+
+	/**
+	 * @param string $image
+	 */
+	public function setImage(string $image): void
+	{
+		$this->image = $image;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getName(): string
+	{
+		return $this->name;
+	}
+
+	/**
+	 * @param string $name
+	 */
+	public function setName(string $name): void
+	{
+		$this->name = $name;
+	}
+
+	#[ArrayShape(["id" => "int", "image" => "string", "name" => "string", "active" => "bool"])]
 	public function toArray(): array
 	{
 		return [
-			"id" => $this->getId(),
-			"user" => $this->getOwner()->getId(),
+			"id" => $this->id,
+			"image" => $this->image,
+			"name" => $this->name,
+			"active" => $this->active,
 		];
 	}
 

@@ -8,7 +8,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 class GroupValueObject extends ValueObject
 {
 	/**
-	 * @var string
 	 * @Assert\NotNull()
 	 * @Assert\NotBlank()
 	 * @Assert\Type("string")
@@ -16,7 +15,6 @@ class GroupValueObject extends ValueObject
 	public string $name;
 
 	/**
-	 * @var string
 	 * @Assert\NotNull()
 	 * @Assert\NotBlank()
 	 * @Assert\Type("string")
@@ -24,56 +22,59 @@ class GroupValueObject extends ValueObject
 	public string $description;
 
 	/**
-	 * @var string
 	 * @Assert\Type("string")
 	 */
 	public string $type;
 
 	/**
-	 * @return string
+	 * @Assert\Type("string")
 	 */
+	public string $image;
+
+	/**
+	 * @Assert\NotNull()
+	 * @Assert\NotBlank()
+	 * @Assert\Type("string")
+	 */
+	public string $user;
+
 	public function getName(): string
 	{
 		return $this->name;
 	}
 
-	/**
-	 * @param string $name
-	 */
 	public function setName(string $name): void
 	{
 		$this->name = $name;
 	}
 
-	/**
-	 * @return string
-	 */
 	public function getDescription(): string
 	{
 		return $this->description;
 	}
 
-	/**
-	 * @param string $description
-	 */
 	public function setDescription(string $description): void
 	{
 		$this->description = $description;
 	}
 
-	/**
-	 * @return string
-	 */
 	public function getType(): string
 	{
 		return $this->type;
 	}
 
-	/**
-	 * @param string $type
-	 */
 	public function setType(string $type): void
 	{
 		$this->type = $type;
+	}
+
+	public function getImage(): string
+	{
+		return $this->image;
+	}
+
+	public function getUser(): string
+	{
+		return $this->user;
 	}
 }

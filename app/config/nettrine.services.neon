@@ -7,5 +7,3 @@ services:
 		class: App\Service\WishlistService
 	productService:
 		class: App\Service\ProductService
-	categoryService:
-		class: App\Service\CategoryService

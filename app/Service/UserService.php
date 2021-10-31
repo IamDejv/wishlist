@@ -4,12 +4,17 @@ declare(strict_types=1);
 namespace App\Service;
 
 
+use App\Model\Entity\Group;
 use App\Model\Entity\User;
+use App\Model\Entity\Wishlist;
 use App\Model\Factory\UserFactory;
 use App\Model\Hydrator\UserHydrator;
-use App\Model\Repository\FriendRepository;
 use App\Model\Repository\UserRepository;
+use App\ValueObject\ActionFriendValueObject;
+use App\ValueObject\ActionGroupValueObject;
+use App\ValueObject\ActionWishlistValueObject;
 use App\ValueObject\AddFriendValueObject;
+use App\ValueObject\RemoveFriendValueObject;
 use App\ValueObject\UserValueObject;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -31,7 +36,6 @@ class UserService extends BaseService
 		private UserHydrator             $hydrator,
 		private Auth                     $firebaseAuthenticator,
 		private UserFactory              $factory,
-		private FriendRepository         $friendRepository
 	)
 	{
 		parent::__construct($this->repository);
@@ -127,7 +131,7 @@ class UserService extends BaseService
 	 */
 	public function getNotUserFriend(string $id, ?string $search, Paginator $paginator): array
 	{
-		$myFriends = $this->friendRepository->findFriends($id);
+		$myFriends = $this->repository->findFriends($id);
 		$users = $this->repository->findUsers($id, $search, $myFriends, [], $paginator->getItemsPerPage(), $paginator->getOffset());
 
 		return $users;
@@ -202,27 +206,121 @@ class UserService extends BaseService
 
 	/**
 	 * @param string $id
-	 * @return ArrayCollection|Collection
-	 * @throws EntityNotFoundException
+	 * @return array
 	 */
-	public function getUserFriends(string $id): ArrayCollection|Collection
+	public function getUserFriends(string $id): array
 	{
-		$user = $this->getById($id);
-
-		return $user->getMyFriends();
+		return $this->repository->getUserFriends($id);
 	}
 
 	/**
 	 * @throws EntityNotFoundException
 	 */
-	public function addFriend(string $id, AddFriendValueObject $valueObject)
+	public function addFriend(string $id, string $friendId): User
 	{
-		$newFriend = $this->getById($valueObject->getId());
+		$newFriend = $this->getById($friendId);
 
 		$user = $this->getById($id);
 
 		$user->addFriend($newFriend);
 
 		$this->em->flush();
+
+		return $newFriend;
+	}
+
+	/**
+	 * @throws EntityNotFoundException
+	 */
+	public function removeFriend(string $id, string $friendId): User
+	{
+		$newFriend = $this->getById($friendId);
+
+		$user = $this->getById($id);
+
+		$user->removeFriend($newFriend);
+
+		$this->em->flush();
+
+		return $newFriend;
+	}
+
+	public function actionFriend(string $id, ActionFriendValueObject $actionFriendValueObject): ?User
+	{
+		$action = $actionFriendValueObject->getAction();
+		if ($action === "remove") {
+			return $this->removeFriend($id, $actionFriendValueObject->getId());
+		} else if ($action === "add") {
+			return $this->addFriend($id, $actionFriendValueObject->getId());
+		}
+
+		return null;
+	}
+
+	/**
+	 * @throws EntityNotFoundException
+	 */
+	public function actionWishlist(string $id, ActionWishlistValueObject $valueObject): Wishlist
+	{
+		$user = $this->getById($id);
+
+		$updatedWishlist = $this->em->getRepository(Wishlist::class)->find($valueObject->getId());
+
+		if (!$updatedWishlist instanceof Wishlist) {
+			throw new EntityNotFoundException("Wishlist not found");
+		}
+
+		if ($valueObject->getAction() === "setActive") {
+			foreach ($user->getWishlists() as $wishlist) {
+				if ($wishlist->getId() === $valueObject->getId()) {
+					$wishlist->setActive(true);
+				} else {
+					$wishlist->setActive(false);
+				}
+			}
+		} else if ($valueObject->getAction() === "setInactive") {
+			foreach ($user->getWishlists() as $wishlist) {
+				$wishlist->setActive(false);
+			}
+		}
+
+		$this->em->flush();
+
+		return $updatedWishlist;
+	}
+
+	/**
+	 * @param string $id
+	 * @param ActionGroupValueObject $valueObject
+	 * @return Group
+	 * @throws EntityNotFoundException
+	 */
+	public function actionGroup(string $id, ActionGroupValueObject $valueObject): Group
+	{
+		$user = $this->getById($id);
+
+		$updatedGroup = $this->em->getRepository(Group::class)->find($valueObject->getId());
+
+		if (!$updatedGroup instanceof Group) {
+			throw new EntityNotFoundException("Group not found");
+		}
+
+		if ($valueObject->getAction() === "setActive") {
+			foreach ($user->getGroups() as $group) {
+				if ($group->getId() === $valueObject->getId()) {
+					$group->setActive(true);
+				} else {
+					$group->setActive(false);
+				}
+			}
+		} else if ($valueObject->getAction() === "setInactive") {
+			foreach ($user->getGroups() as $group) {
+				$group->setActive(false);
+			}
+		}
+
+		$this->em->flush();
+
+		return $updatedGroup;
 	}
 }

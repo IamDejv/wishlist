@@ -8,6 +8,7 @@ use App\Model\Factory\ProductFactory;
 use App\Model\Hydrator\ProductHydrator;
 use App\Model\Repository\ProductRepository;
 use App\ValueObject\ProductValueObject;
+use App\ValueObject\UpdateProductValueObject;
 use Doctrine\ORM\EntityNotFoundException;
 use Nettrine\ORM\EntityManagerDecorator;
 
@@ -56,11 +57,11 @@ class ProductService extends BaseService
 
 	/**
 	 * @param int $id
-	 * @param ProductValueObject $valueObject
+	 * @param UpdateProductValueObject $valueObject
 	 * @return Product|null
 	 * @throws EntityNotFoundException
 	 */
-	public function update(int $id, ProductValueObject $valueObject): ?Product
+	public function update(int $id, UpdateProductValueObject $valueObject): ?Product
 	{
 		$product = $this->repository->find($id);
 
@@ -74,5 +75,26 @@ class ProductService extends BaseService
 		$this->em->flush();
 
 		return $product;
+	}
+
+	public function getProductsFromUserActiveWishlist(string $firebaseUid)
+	{
+		return $this->repository->findByUserAndActiveWishlist($firebaseUid);
+	}
+
+	/**
+	 * @param int $id
+	 * @throws EntityNotFoundException
+	 */
+	public function delete(int $id)
+	{
+		$product = $this->repository->find($id);
+
+		if (!$product instanceof Product) {
+			throw new EntityNotFoundException();
+		}
+
+		$this->em->remove($product);
+		$this->em->flush();
 	}
 }

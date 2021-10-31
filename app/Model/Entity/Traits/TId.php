@@ -11,6 +11,7 @@ trait TId
 	 * @var int
 	 * @ORM\Column(type="integer", nullable=false)
 	 * @ORM\Id
+	 * @ORM\GeneratedValue
 	 */
 	private int $id;
 

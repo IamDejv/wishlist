@@ -10,7 +10,7 @@ use JetBrains\PhpStorm\Pure;
 
 /**
  * @ORM\Entity(repositoryClass="App\Model\Repository\GroupRepository")
- * @ORM\Table(name="`groups`", uniqueConstraints={@ORM\UniqueConstraint(name="name", columns={"name"})})
+ * @ORM\Table(name="`groups`")
  * @ORM\HasLifecycleCallbacks
  */
 class Group extends BaseEntity
@@ -33,9 +33,19 @@ class Group extends BaseEntity
 	private string $type;
 
 	/**
-	 * @ORM\Column(type="text", nullable=false)
+	 * @ORM\Column(type="string", nullable=false)
 	 */
 	private string $image;
+
+	/**
+	 * @ORM\Column(type="boolean", nullable=false)
+	 */
+	private bool $archived;
+
+	/**
+	 * @ORM\Column(type="boolean", nullable=false)
+	 */
+	private bool $active;
 
 	/**
 	 * @return string
@@ -101,8 +111,40 @@ class Group extends BaseEntity
 		$this->image = $image;
 	}
 
+	/**
+	 * @return bool
+	 */
+	public function isArchived(): bool
+	{
+		return $this->archived;
+	}
+
+	/**
+	 * @param bool $archived
+	 */
+	public function setArchived(bool $archived): void
+	{
+		$this->archived = $archived;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isActive(): bool
+	{
+		return $this->active;
+	}
+
+	/**
+	 * @param bool $active
+	 */
+	public function setActive(bool $active): void
+	{
+		$this->active = $active;
+	}
+
+	#[ArrayShape(["id" => "int", "name" => "string", "description" => "string", "type" => "string", "image" => "string", "active" => "bool"])]
 	#[Pure]
-	#[ArrayShape(["id" => "int", "name" => "string", "description" => "string", "type" => "string", "public" => "bool"])]
 	public function toArray(): array
 	{
 		return [
@@ -110,6 +152,8 @@ class Group extends BaseEntity
 			"name" => $this->getName(),
 			"description" => $this->getDescription(),
 			"type" => $this->getType(),
+			"image" => $this->getImage(),
+			"active" => $this->isActive(),
 		];
 	}
 }
