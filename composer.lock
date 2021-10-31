@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "54dfb4e8d85b88071af4c3ab61ab193e",
+    "content-hash": "2b5b62f92ceea59690a764204a280dea",
     "packages": [
         {
             "name": "apitte/core",
@@ -6032,7 +6032,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.1",
+        "php": "^8.0.12",
         "ext-json": "*"
     },
     "platform-dev": [],
