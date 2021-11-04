@@ -4,7 +4,7 @@ parameters:
 		- dump: %isProduction%
 	isProduction: false
 	db:
-		host: "f80b6byii2vwv8cx.chr7pe7iynqr.eu-west-1.rds.amazonaws.com"
-		dbname: "wishlist"
-		user: "s9xyjpdfkwv6mu8u"
-		password: "nvsh4wwtomtoagbf"
+		host: "klbcedmmqp7w17ik.cbetxkdyhwsb.us-east-1.rds.amazonaws.com"
+		dbname: "wdsguodzz2ss8f63"
+		user: "a2u42ic28pcnlrsw"
+		password: "qcjaan6bjar5dgcy"
