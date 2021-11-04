@@ -24,6 +24,8 @@ class Bootstrap
 			$configurator->enableTracy(__DIR__ . '/../log');
 			$configurator->enableDebugger(__DIR__ . '/../log');
 			$configurator->addConfig(__DIR__ . '/config/local.neon');
+		} else {
+			$configurator->addConfig(__DIR__ . '/config/stage.neon');
 		}
 
 		// Doctrine types
