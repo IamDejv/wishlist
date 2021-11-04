@@ -11,3 +11,6 @@ services:
 	wishlistRepository:
 		class: App\Model\Repository\WishlistRepository
 		factory: @App\Model\EntityManager::getRepository(App\Model\Entity\Wishlist)
+	imageRepository:
+		class: App\Model\Repository\ImageRepository
+		factory: @App\Model\EntityManager::getRepository(App\Model\Entity\Image)

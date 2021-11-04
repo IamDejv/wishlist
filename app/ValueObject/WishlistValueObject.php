@@ -8,8 +8,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 class WishlistValueObject extends ValueObject
 {
 	/**
-	 * @Assert\NotNull()
-	 * @Assert\NotBlank()
 	 * @Assert\Type("string")
 	 */
 	public string $user;

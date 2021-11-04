@@ -14,15 +14,10 @@ use Doctrine\ORM\EntityNotFoundException;
 
 class WishlistHydrator implements HydratorInterface
 {
-	public function __construct(private EntityManager $em)
-	{
-	}
-
 	/**
 	 * @param ValueObjectInterface|WishlistValueObject $valueObject
 	 * @param BaseEntity|null $entity
 	 * @return Product|null
-	 * @throws EntityNotFoundException
 	 */
 	public function hydrate(ValueObjectInterface|WishlistValueObject $valueObject, ?BaseEntity $entity): ?Wishlist
 	{
@@ -34,14 +29,6 @@ class WishlistHydrator implements HydratorInterface
 
 		$entity->setImage($valueObject->getImage());
 		$entity->setName($valueObject->getName());
-
-		$user = $this->em->getRepository(User::class)->find($valueObject->getUser());
-
-		if (!$user instanceof User) {
-			throw new EntityNotFoundException("User not found");
-		}
-
-		$entity->setOwner($user);
 
 		return $entity;
 	}

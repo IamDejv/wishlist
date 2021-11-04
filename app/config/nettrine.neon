@@ -8,6 +8,8 @@ extensions:
 	nettrine.orm.cache: Nettrine\ORM\DI\OrmCacheExtension
 	nettrine.orm.console: Nettrine\ORM\DI\OrmConsoleExtension(%consoleMode%)
 	nettrine.orm.annotations: Nettrine\ORM\DI\OrmAnnotationsExtension
+	nettrine.fixtures: Nettrine\Fixtures\DI\FixturesExtension
+
 
 nettrine.dbal:
 	connection:
@@ -42,6 +44,9 @@ nettrine.orm.annotations:
 	mapping:
 		App\Model\Entity: %appDir%/Model/Entity
 
+nettrine.fixtures:
+	paths:
+		- %appDir%/Fixtures
 
 includes:
 	- nettrine.services.neon

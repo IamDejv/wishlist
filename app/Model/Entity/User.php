@@ -74,6 +74,12 @@ class User extends BaseEntity
 	 */
 	private Collection $wishlists;
 
+	/**
+	 * One product has many features. This is the inverse side.
+	 * @ORM\OneToMany(targetEntity="Group", mappedBy="owner")
+	 */
+	private Collection $myGroups;
+
 	#[Pure]
 	public function __construct()
 	{

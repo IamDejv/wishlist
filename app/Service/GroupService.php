@@ -47,21 +47,18 @@ class GroupService extends BaseService
 
 	/**
 	 * @param GroupValueObject $valueObject
+	 * @param User|null $owner
 	 * @return Group|null
-	 * @throws EntityNotFoundException
 	 */
-	public function create(GroupValueObject $valueObject): ?Group
+	public function create(GroupValueObject $valueObject, User $owner = null): ?Group
 	{
 		$group = $this->factory->create($valueObject);
 
+		$group->setOwner($owner);
+		$owner->addGroup($group);
+
 		$this->em->persist($group);
-
-		$user = $this->userService->getById($valueObject->getUser());
-
-		$user->addGroup($group);
-
 		$this->em->flush();
-
 		return $group;
 	}
 

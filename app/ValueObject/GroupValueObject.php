@@ -31,13 +31,6 @@ class GroupValueObject extends ValueObject
 	 */
 	public string $image;
 
-	/**
-	 * @Assert\NotNull()
-	 * @Assert\NotBlank()
-	 * @Assert\Type("string")
-	 */
-	public string $user;
-
 	public function getName(): string
 	{
 		return $this->name;
@@ -71,10 +64,5 @@ class GroupValueObject extends ValueObject
 	public function getImage(): string
 	{
 		return $this->image;
-	}
-
-	public function getUser(): string
-	{
-		return $this->user;
 	}
 }

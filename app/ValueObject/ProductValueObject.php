@@ -39,7 +39,7 @@ class ProductValueObject extends ValueObject
 	/**
 	 * @Assert\Type("int")
 	 */
-	public int $wishlistId;
+	public ?int $wishlistId;
 
 	public function getName(): string
 	{
@@ -66,8 +66,13 @@ class ProductValueObject extends ValueObject
 		return $this->price;
 	}
 
-	public function getWishlistId(): int
+	public function getWishlistId(): ?int
 	{
 		return $this->wishlistId;
+	}
+
+	public function setWishlistId(int $wishlistId)
+	{
+		$this->wishlistId = $wishlistId;
 	}
 }

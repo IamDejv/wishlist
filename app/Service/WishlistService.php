@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Model\Entity\User;
 use App\Model\Entity\Wishlist;
 use App\Model\Factory\WishlistFactory;
 use App\Model\Hydrator\WishlistHydrator;
@@ -46,12 +47,15 @@ class WishlistService extends BaseService
 
 	/**
 	 * @param WishlistValueObject $valueObject
+	 * @param User|null $owner
 	 * @return Wishlist|null
 	 * @throws EntityNotFoundException
 	 */
-	public function create(WishlistValueObject $valueObject): ?Wishlist
+	public function create(WishlistValueObject $valueObject, User $owner = null): ?Wishlist
 	{
 		$wishlist = $this->factory->create($valueObject);
+
+		$wishlist->setOwner($owner);
 
 		$this->em->persist($wishlist);
 		$this->em->flush();
@@ -95,5 +99,13 @@ class WishlistService extends BaseService
 		}
 
 		return $wishlist->getProducts();
+	}
+
+	public function getActiveByUser(string $firebaseUid): Wishlist
+	{
+		return $this->repository->findOneBy([
+			"owner" => $firebaseUid,
+			"active" => true,
+		]);
 	}
 }

@@ -8,7 +8,7 @@ echo "drop database if exists wishlist; create database wishlist;" | mysql -uroo
 
 php bin/console orm:schema-tool:drop --force --full-database
 php bin/console orm:schema-tool:create --no-interaction
-// php bin/console doctrine:fixtures:load --no-interaction
+php bin/console doctrine:fixtures:load --no-interaction
 
 if [ -f ./db/db_dump.sql ]; then
     echo "Importing DB dump to wishdb..."

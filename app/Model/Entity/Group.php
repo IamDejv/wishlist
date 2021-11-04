@@ -48,6 +48,13 @@ class Group extends BaseEntity
 	private bool $active;
 
 	/**
+	 * Many features have one product. This is the owning side.
+	 * @ORM\ManyToOne(targetEntity="User", inversedBy="myGroups")
+	 * @ORM\JoinColumn(name="owner_id", referencedColumnName="id")
+	 */
+	private User $owner;
+
+	/**
 	 * @return string
 	 */
 	public function getName(): string
@@ -143,17 +150,33 @@ class Group extends BaseEntity
 		$this->active = $active;
 	}
 
-	#[ArrayShape(["id" => "int", "name" => "string", "description" => "string", "type" => "string", "image" => "string", "active" => "bool"])]
-	#[Pure]
+	/**
+	 * @return User
+	 */
+	public function getOwner(): User
+	{
+		return $this->owner;
+	}
+
+	/**
+	 * @param User $owner
+	 */
+	public function setOwner(User $owner): void
+	{
+		$this->owner = $owner;
+	}
+
+	#[ArrayShape(["id" => "int", "name" => "string", "description" => "string", "type" => "string", "image" => "string", "active" => "bool", "owner" => "string"])]
 	public function toArray(): array
 	{
 		return [
-			"id" => $this->getId(),
-			"name" => $this->getName(),
-			"description" => $this->getDescription(),
-			"type" => $this->getType(),
-			"image" => $this->getImage(),
-			"active" => $this->isActive(),
+			"id" => $this->id,
+			"name" => $this->name,
+			"description" => $this->description,
+			"type" => $this->type,
+			"image" => $this->image,
+			"active" => $this->active,
+			"owner" => $this->owner->getId()
 		];
 	}
 }
