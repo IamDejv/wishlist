@@ -20,6 +20,6 @@ class CorsDecorator implements IResponseDecorator
 	 */
 	public function decorateResponse(ApiRequest $request, ApiResponse $response): ApiResponse
 	{
-		return $this->corsResponse($request, $response);
+		return $this->corsResponse($response);
 	}
 }

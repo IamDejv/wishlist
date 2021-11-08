@@ -8,14 +8,15 @@ use Apitte\Core\Annotation\Controller\Path;
 use Apitte\Core\Annotation\Controller\RequestBody;
 use Apitte\Core\Annotation\Controller\Responses;
 use Apitte\Core\Annotation\Controller\Response;
+use Apitte\Core\Annotation\Controller\Tag;
 use Apitte\Core\Exception\Api\ClientErrorException;
 use Apitte\Core\Http\ApiRequest;
 use Apitte\Core\Http\ApiResponse;
+use App\Enum\RequestEnum;
 use App\Enum\ResponseEnum;
 use App\Helpers\ResponseHelper;
 use App\Service\GroupService;
 use App\Service\ProductService;
-use App\Service\TokenService;
 use App\Service\UserService;
 use App\Service\WishlistService;
 use App\ValueObject\ActionFriendValueObject;
@@ -30,12 +31,12 @@ use Exception;
 
 /**
  * @Path("/me")
+ * @Tag(name="me")
  */
 class MeController extends BaseAuthController
 {
 	public function __construct(
 		private UserService $userService,
-		private TokenService $tokenService,
 		private ProductService $productService,
 		private WishlistService $wishlistService,
 		private GroupService $groupService
@@ -55,15 +56,11 @@ class MeController extends BaseAuthController
 	public function get(ApiRequest $request, ApiResponse $response): ApiResponse
 	{
 		try {
-			$tokenHeader = $request->getHeader("Authentication");
-			$firebaseUid = $this->tokenService->getFirebaseUidFromToken($tokenHeader[0]);
-			$user = $this->userService->getById($firebaseUid);
+			$user = $request->getAttribute(RequestEnum::USER);
 
 			return $response
 				->withAttribute(ResponseEnum::SINGLE, $user)
 				->withStatus(ResponseHelper::OK);
-		} catch (EntityNotFoundException $e) {
-			throw new ClientErrorException($e->getMessage(), ResponseHelper::NOT_FOUND, $e);
 		} catch (Exception $e) {
 			throw new ClientErrorException($e->getMessage(), ResponseHelper::UNAUTHORIZED, $e);
 		}
@@ -83,10 +80,9 @@ class MeController extends BaseAuthController
 	public function getProducts(ApiRequest $request, ApiResponse $response): ApiResponse
 	{
 		try {
-			$tokenHeader = $request->getHeader("Authentication");
-			$firebaseUid = $this->tokenService->getFirebaseUidFromToken($tokenHeader[0]);
+			$user = $request->getAttribute(RequestEnum::USER);
 
-			$products = $this->productService->getProductsFromUserActiveWishlist($firebaseUid);
+			$products = $this->productService->getProductsFromUserActiveWishlist($user->getId());
 
 			return $response
 				->withAttribute(ResponseEnum::MULTIPLE, $products)
@@ -117,8 +113,7 @@ class MeController extends BaseAuthController
 			/** @var UserValueObject $userValueObject */
 			$userValueObject = $this->getRequestEntity($request);
 
-			$tokenHeader = $request->getHeader("Authentication");
-			$firebaseUid = $this->tokenService->getFirebaseUidFromToken($tokenHeader[0]);
+			$firebaseUid = $request->getAttribute(RequestEnum::USER)->getId();
 
 			$user = $this->userService->updateMe($firebaseUid, $userValueObject);
 
@@ -144,9 +139,7 @@ class MeController extends BaseAuthController
 	public function listGroups(ApiRequest $request, ApiResponse $response): ApiResponse
 	{
 		try {
-			$tokenHeader = $request->getHeader("Authentication");
-			$firebaseUid = $this->tokenService->getFirebaseUidFromToken($tokenHeader[0]);
-			$user = $this->userService->getById($firebaseUid);
+			$user = $request->getAttribute(RequestEnum::USER);
 
 			return $response
 				->withAttribute(ResponseEnum::MULTIPLE, $user->getGroups())
@@ -170,10 +163,9 @@ class MeController extends BaseAuthController
 	public function listFriends(ApiRequest $request, ApiResponse $response): ApiResponse
 	{
 		try {
-			$tokenHeader = $request->getHeader("Authentication");
-			$firebaseUid = $this->tokenService->getFirebaseUidFromToken($tokenHeader[0]);
+			$user = $request->getAttribute(RequestEnum::USER);
 
-			$friends = $this->userService->getUserFriends($firebaseUid);
+			$friends = $this->userService->getUserFriends($user->getId());
 
 			return $response
 				->withAttribute(ResponseEnum::MULTIPLE, $friends)
@@ -197,9 +189,7 @@ class MeController extends BaseAuthController
 	public function listWishlists(ApiRequest $request, ApiResponse $response): ApiResponse
 	{
 		try {
-			$tokenHeader = $request->getHeader("Authentication");
-			$firebaseUid = $this->tokenService->getFirebaseUidFromToken($tokenHeader[0]);
-			$user = $this->userService->getById($firebaseUid);
+			$user = $request->getAttribute(RequestEnum::USER);
 
 			return $response
 				->withAttribute(ResponseEnum::MULTIPLE, $user->getWishlists())
@@ -224,13 +214,11 @@ class MeController extends BaseAuthController
 	public function setWishlistActive(ApiRequest $request, ApiResponse $response): ApiResponse
 	{
 		try {
-			$tokenHeader = $request->getHeader("Authentication");
-			$firebaseUid = $this->tokenService->getFirebaseUidFromToken($tokenHeader[0]);
-
 			/** @var ActionWishlistValueObject $valueObject */
 			$valueObject = $this->getRequestEntity($request);
+			$user = $request->getAttribute(RequestEnum::USER);
 
-			$wishlist = $this->userService->actionWishlist($firebaseUid, $valueObject);
+			$wishlist = $this->userService->actionWishlist($user->getId(), $valueObject);
 
 			return $response
 				->withAttribute(ResponseEnum::SINGLE, $wishlist)
@@ -255,13 +243,12 @@ class MeController extends BaseAuthController
 	public function setGroupActive(ApiRequest $request, ApiResponse $response): ApiResponse
 	{
 		try {
-			$tokenHeader = $request->getHeader("Authentication");
-			$firebaseUid = $this->tokenService->getFirebaseUidFromToken($tokenHeader[0]);
+			$user = $request->getAttribute(RequestEnum::USER);
 
 			/** @var ActionGroupValueObject $valueObject */
 			$valueObject = $this->getRequestEntity($request);
 
-			$group = $this->userService->actionGroup($firebaseUid, $valueObject);
+			$group = $this->userService->actionGroup($user->getId(), $valueObject);
 
 			return $response
 				->withAttribute(ResponseEnum::SINGLE, $group)
@@ -286,10 +273,9 @@ class MeController extends BaseAuthController
 		try {
 			/** @var ActionFriendValueObject $actionFriendValueObject */
 			$actionFriendValueObject = $this->getRequestEntity($request);
-			$tokenHeader = $request->getHeader("Authentication");
-			$firebaseUid = $this->tokenService->getFirebaseUidFromToken($tokenHeader[0]);
+			$user = $request->getAttribute(RequestEnum::USER);
 
-			$friend = $this->userService->actionFriend($firebaseUid, $actionFriendValueObject);
+			$friend = $this->userService->actionFriend($user->getId(), $actionFriendValueObject);
 			return $response
 				->withAttribute(ResponseEnum::SINGLE, $friend)
 				->withStatus(ResponseHelper::OK);
@@ -315,10 +301,9 @@ class MeController extends BaseAuthController
 		try {
 			/** @var ProductValueObject $valueObject */
 			$valueObject = $this->getRequestEntity($request);
-			$tokenHeader = $request->getHeader("Authentication");
-			$firebaseUid = $this->tokenService->getFirebaseUidFromToken($tokenHeader[0]);
+			$user = $request->getAttribute(RequestEnum::USER);
 
-			$wishlist = $this->wishlistService->getActiveByUser($firebaseUid);
+			$wishlist = $this->wishlistService->getActiveByUser($user->getId());
 
 			$valueObject->setWishlistId($wishlist->getId());
 
@@ -349,9 +334,7 @@ class MeController extends BaseAuthController
 		try {
 			/** @var GroupValueObject $valueObject */
 			$valueObject = $this->getRequestEntity($request);
-			$tokenHeader = $request->getHeader("Authentication");
-			$firebaseUid = $this->tokenService->getFirebaseUidFromToken($tokenHeader[0]);
-			$owner = $this->userService->getById($firebaseUid);
+			$owner = $request->getAttribute(RequestEnum::USER);
 
 			$group = $this->groupService->create($valueObject, $owner);
 
@@ -380,14 +363,38 @@ class MeController extends BaseAuthController
 		try {
 			/** @var WishlistValueObject $valueObject */
 			$valueObject = $this->getRequestEntity($request);
-			$tokenHeader = $request->getHeader("Authentication");
-			$firebaseUid = $this->tokenService->getFirebaseUidFromToken($tokenHeader[0]);
-			$owner = $this->userService->getById($firebaseUid);
+			$owner = $request->getAttribute(RequestEnum::USER);
 
 			$wishlist = $this->wishlistService->create($valueObject, $owner);
 
 			return $response
 				->withAttribute(ResponseEnum::SINGLE, $wishlist)
+				->withStatus(ResponseHelper::OK);
+		} catch (Exception $e) {
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
+		}
+	}
+
+	/**
+	 * @Path("/friends/pending")
+	 * @Method("GET")
+	 * @Responses({
+	 *     @Response(code="200", description="Success")
+	 * })
+	 *
+	 * @param ApiRequest $request
+	 * @param ApiResponse $response
+	 * @return ApiResponse
+	 */
+	public function getPendingFriends(ApiRequest $request, ApiResponse $response): ApiResponse
+	{
+		try {
+			$user = $request->getAttribute(RequestEnum::USER);
+
+			$users = $this->userService->getPendingFriends($user);
+
+			return $response
+				->withAttribute(ResponseEnum::MULTIPLE, $users)
 				->withStatus(ResponseHelper::OK);
 		} catch (Exception $e) {
 			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);

@@ -36,7 +36,8 @@ class UserRepository extends BaseRepository
 		if (!is_null($searchValue)) {
 			$qb->andWhere($qb->expr()->orX(
 				$qb->expr()->like("u.firstname", ":search"),
-				$qb->expr()->like("u.lastname", ":search")
+				$qb->expr()->like("u.lastname", ":search"),
+				$qb->expr()->like("u.email", ":search")
 			))
 				->setParameter("search", "%$searchValue%");
 		}
@@ -64,10 +65,10 @@ class UserRepository extends BaseRepository
 		$qb = $this
 			->_em
 			->createNativeQuery("
-				SELECT IF(f.friend_user_id = '$id', f.user_id, f.friend_user_id) as friend
+				SELECT IF(f.friend_id = '$id', f.user_id, f.friend_id) as friend
 				FROM friends as f
 				WHERE f.user_id = '$id'
-				OR f.friend_user_id = '$id';
+				OR f.friend_id = '$id';
 			", $rsm);
 
 		return $qb->getResult();
@@ -111,10 +112,35 @@ class UserRepository extends BaseRepository
 			SELECT *
 			FROM users as u
 			WHERE u.id IN (
-				SELECT IF(f.friend_user_id = '$id', f.user_id, f.friend_user_id)
+				SELECT IF(f.friend_id = '$id', f.user_id, f.friend_id)
 				FROM friends as f
-				WHERE f.user_id = '$id'
-				OR f.friend_user_id = '$id'
+				WHERE f.confirmed = true
+				AND (f.user_id = '$id'
+				OR f.friend_id = '$id')
+			)
+			",
+			$rsm);
+
+		return $qb->getResult();
+	}
+
+	public function findPendingFriends(string $id)
+	{
+		$rsm = new ResultSetMapping();
+		$rsm->addEntityResult(User::class, "u");
+		$rsm->addFieldResult('u', 'id', 'id');
+		$rsm->addFieldResult('u', 'firstname', 'firstname');
+		$rsm->addFieldResult('u', 'lastname', 'lastname');
+		$rsm->addFieldResult('u', 'email', 'email');
+
+		$qb = $this->_em->createNativeQuery("
+			SELECT *
+			FROM users as u
+			WHERE u.id IN (
+				SELECT f.user_id
+				FROM friends as f
+				WHERE f.confirmed = false
+				AND f.friend_id = '$id'
 			)
 			",
 			$rsm);

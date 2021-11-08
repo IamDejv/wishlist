@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Middleware;
 
+use App\Enum\RequestEnum;
 use App\Helpers\ResponseHelper;
 use App\Service\Exceptions\ExpiredTokenException;
 use App\Service\TokenService;
@@ -42,9 +43,8 @@ class AuthenticationMiddleware implements IMiddleware
 		}
 
 		try {
-			if (false) {
-				$this->tokenService->checkToken($tokenHeaderValue[0]);
-			}
+			$user = $this->tokenService->checkToken($tokenHeaderValue[0], true);
+			$request = $request->withAttribute(RequestEnum::USER, $user);
 		} catch (ExpiredTokenException $e) {
 			return $this->notAuthenticated($response, 'Authentication error!', ResponseHelper::TOKEN_EXPIRED);
 		} catch (EntityNotFoundException $e) {

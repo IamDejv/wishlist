@@ -4,7 +4,7 @@ parameters:
 		- dump: %isProduction%
 	isProduction: false
 	db:
-		host: "klbcedmmqp7w17ik.cbetxkdyhwsb.us-east-1.rds.amazonaws.com"
-		dbname: "wdsguodzz2ss8f63"
-		user: "a2u42ic28pcnlrsw"
-		password: "qcjaan6bjar5dgcy"
+		host: "sql303.epizy.com"
+		dbname: "epiz_30290582_wishlist"
+		user: "epiz_30290582"
+		password: "ubbo9BnIGD"

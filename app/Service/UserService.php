@@ -4,23 +4,22 @@ declare(strict_types=1);
 namespace App\Service;
 
 
+use App\Model\Entity\Friend;
 use App\Model\Entity\Group;
 use App\Model\Entity\User;
 use App\Model\Entity\Wishlist;
 use App\Model\Factory\UserFactory;
 use App\Model\Hydrator\UserHydrator;
+use App\Model\Repository\FriendRepository;
 use App\Model\Repository\UserRepository;
 use App\ValueObject\ActionFriendValueObject;
 use App\ValueObject\ActionGroupValueObject;
 use App\ValueObject\ActionWishlistValueObject;
-use App\ValueObject\AddFriendValueObject;
-use App\ValueObject\RemoveFriendValueObject;
 use App\ValueObject\UserValueObject;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\ExpressionBuilder;
 use Doctrine\ORM\EntityNotFoundException;
+use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Kreait\Firebase\Contract\Auth;
 use Kreait\Firebase\Exception\AuthException;
@@ -36,6 +35,7 @@ class UserService extends BaseService
 		private UserHydrator             $hydrator,
 		private Auth                     $firebaseAuthenticator,
 		private UserFactory              $factory,
+		private FriendRepository         $friendRepository,
 	)
 	{
 		parent::__construct($this->repository);
@@ -222,7 +222,14 @@ class UserService extends BaseService
 
 		$user = $this->getById($id);
 
-		$user->addFriend($newFriend);
+		$friendship = new Friend();
+		$friendship->setFriend($newFriend);
+		$friendship->setUser($user);
+		$friendship->setConfirmed(false);
+
+		$this->em->persist($friendship);
+
+		$user->addFriend($friendship);
 
 		$this->em->flush();
 
@@ -231,20 +238,26 @@ class UserService extends BaseService
 
 	/**
 	 * @throws EntityNotFoundException
+	 * @throws NonUniqueResultException
 	 */
 	public function removeFriend(string $id, string $friendId): User
 	{
-		$newFriend = $this->getById($friendId);
+		$friend = $this->getById($friendId);
 
-		$user = $this->getById($id);
+		$this->getById($id);
 
-		$user->removeFriend($newFriend);
+		$friendship = $this->friendRepository->findByUsers($id, $friendId);
+
+		$this->em->remove($friendship);
 
 		$this->em->flush();
 
-		return $newFriend;
+		return $friend;
 	}
 
+	/**
+	 * @throws EntityNotFoundException
+	 */
 	public function actionFriend(string $id, ActionFriendValueObject $actionFriendValueObject): ?User
 	{
 		$action = $actionFriendValueObject->getAction();
@@ -252,6 +265,8 @@ class UserService extends BaseService
 			return $this->removeFriend($id, $actionFriendValueObject->getId());
 		} else if ($action === "add") {
 			return $this->addFriend($id, $actionFriendValueObject->getId());
+		} else if ($action === "confirm") {
+			return $this->confirmFriend($id, $actionFriendValueObject->getId());
 		}
 
 		return null;
@@ -322,5 +337,36 @@ class UserService extends BaseService
 		$this->em->flush();
 
 		return $updatedGroup;
+	}
+
+	public function getPendingFriends(User $user)
+	{
+		return $this->repository->findPendingFriends($user->getId());
+	}
+
+	/**
+	 * @param string $id
+	 * @param string $friendId
+	 * @return User
+	 * @throws EntityNotFoundException
+	 */
+	private function confirmFriend(string $id, string $friendId): User
+	{
+		$newFriend = $this->getById($friendId);
+
+		$user = $this->getById($id);
+
+		/** @var Friend $friendship */
+		$friendship = $this->em->getRepository(Friend::class)->findOneBy(
+			[
+				"friend" => $user,
+				"user" => $newFriend,
+			]
+		);
+
+		$friendship->setConfirmed(true);
+		$this->em->flush();
+
+		return $newFriend;
 	}
 }

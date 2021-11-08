@@ -14,3 +14,6 @@ services:
 	imageRepository:
 		class: App\Model\Repository\ImageRepository
 		factory: @App\Model\EntityManager::getRepository(App\Model\Entity\Image)
+	friendRepository:
+		class: App\Model\Repository\FriendRepository
+		factory: @App\Model\EntityManager::getRepository(App\Model\Entity\Friend)

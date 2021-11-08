@@ -17,6 +17,10 @@ api:
 			Apitte\Debug\DI\DebugPlugin:
 
 services:
+	middleware.cors:
+		factory: App\Middleware\CorsMiddleware
+		tags: [middleware: [priority: 1]]
+
 	decorator.response.cors:
 		class: App\Decorator\Response\CorsDecorator
 		tags: [apitte.core.decorator: [priority: 60, type: handler.after]]

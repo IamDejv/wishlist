@@ -40,7 +40,7 @@ class ExceptionDecorator implements IErrorDecorator
 				]);
 		}
 
-		return $this->corsResponse($request, $response);
+		return $this->corsResponse($response);
 	}
 
 	private function fillResponseByClientException(ClientErrorException $error, ApiResponse $response): ApiResponse

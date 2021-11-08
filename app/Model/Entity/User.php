@@ -43,18 +43,14 @@ class User extends BaseEntity
 	private string $email;
 
 	/**
-	 * Many Users have Many Users.
-	 * @ORM\ManyToMany(targetEntity="User", mappedBy="myFriends")
+	 * One product has many features. This is the inverse side.
+	 * @ORM\OneToMany(targetEntity="Friend", mappedBy="user")
 	 */
 	private Collection $friendsWithMe;
 
 	/**
-	 * Many Users have many Users.
-	 * @ORM\ManyToMany(targetEntity="User", inversedBy="friendsWithMe")
-	 * @ORM\JoinTable(name="friends",
-	 *      joinColumns={@ORM\JoinColumn(name="user_id", referencedColumnName="id")},
-	 *      inverseJoinColumns={@ORM\JoinColumn(name="friend_user_id", referencedColumnName="id")}
-	 *      )
+	 * One product has many features. This is the inverse side.
+	 * @ORM\OneToMany(targetEntity="Friend", mappedBy="friend")
 	 */
 	private Collection $myFriends;
 
@@ -229,12 +225,12 @@ class User extends BaseEntity
 		];
 	}
 
-	public function addFriend(User $newFriend): void
+	public function addFriend(Friend $newFriend): void
 	{
 		$this->myFriends->add($newFriend);
 	}
 
-	public function removeFriend(User $friend): void
+	public function removeFriend(Friend $friend): void
 	{
 		$this->myFriends->removeElement($friend);
 	}
