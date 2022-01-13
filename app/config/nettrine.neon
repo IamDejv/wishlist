@@ -39,6 +39,10 @@ nettrine.orm:
 			- %appDir%/Model/Entity
 		customStringFunctions:
 			NOW: App\Model\Doctrine\Now
+		filters:
+			ArchivedFilter:
+				class: App\Filter\ArchivedFilter
+				enabled: true
 
 nettrine.orm.annotations:
 	mapping:

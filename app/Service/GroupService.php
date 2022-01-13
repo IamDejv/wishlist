@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use Apitte\Core\Exception\Api\ClientErrorException;
+use App\Helpers\ResponseHelper;
 use App\Model\Entity\Group;
 use App\Model\Entity\User;
 use App\Model\Factory\GroupFactory;
@@ -31,15 +33,12 @@ class GroupService extends BaseService
 		return $this->repository->findAll();
 	}
 
-	/**
-	 * @throws EntityNotFoundException
-	 */
 	public function get(int $id): Group
 	{
 		$group = $this->repository->find($id);
 
 		if (!$group instanceof Group) {
-			throw new EntityNotFoundException();
+			throw new ClientErrorException("Group not found", ResponseHelper::NOT_FOUND);
 		}
 
 		return $group;
@@ -116,5 +115,18 @@ class GroupService extends BaseService
 		$this->em->flush();
 
 		return $user;
+	}
+
+	public function archive(int $id, User $user)
+	{
+		$wishlist = $this->get($id);
+
+		if ($wishlist->getOwner()->getId() !== $user->getId()) {
+			throw new ClientErrorException("Not your group", ResponseHelper::BAD_REQUEST);
+		}
+
+		$wishlist->setArchived(true);
+
+		$this->em->flush();
 	}
 }

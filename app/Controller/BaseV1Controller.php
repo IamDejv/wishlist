@@ -27,7 +27,6 @@ abstract class BaseV1Controller implements IController
 	 * @param ApiRequest $request
 	 * @param bool $validate
 	 * @return ValueObject
-	 * @throws InvalidValueException
 	 */
 	public function getRequestEntity(ApiRequest $request, bool $validate = true): ValueObject
 	{

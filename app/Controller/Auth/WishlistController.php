@@ -13,6 +13,8 @@ use Apitte\Core\Annotation\Controller\Response;
 use Apitte\Core\Exception\Api\ClientErrorException;
 use Apitte\Core\Http\ApiRequest;
 use Apitte\Core\Http\ApiResponse;
+use Apitte\Core\Http\RequestAttributes;
+use App\Enum\RequestEnum;
 use App\Enum\ResponseEnum;
 use App\Helpers\ResponseHelper;
 use App\Service\WishlistService;
@@ -152,6 +154,36 @@ class WishlistController extends BaseAuthController
 			return $response
 				->withAttribute(ResponseEnum::SINGLE, $wishlist)
 				->withStatus(ResponseHelper::OK);
+		} catch (Exception $e) {
+			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
+		}
+	}
+
+	/**
+	 * @Path("/{id}/archive")
+	 * @Method("PATCH")
+	 * @RequestParameters({
+	 * 		@RequestParameter(name="id", type="int")
+	 *})
+	 * @Responses({
+	 * 		@Response(code="204", description="Success")
+	 * })
+	 *
+	 * @param ApiRequest $request
+	 * @param ApiResponse $response
+	 * @return ApiResponse
+	 */
+	public function archive(ApiRequest $request, ApiResponse $response): ApiResponse
+	{
+		try {
+			$id = $request->getParameter('id');
+
+			$user = $request->getAttribute(RequestEnum::USER);
+
+			$this->service->archive($id, $user);
+
+			return $response
+				->withStatus(ResponseHelper::NO_CONTENT);
 		} catch (Exception $e) {
 			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
 		}

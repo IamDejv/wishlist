@@ -4,34 +4,25 @@ declare(strict_types=1);
 namespace App\ValueObject\Exception;
 
 
-use Exception;
+use Apitte\Core\Exception\Api\ClientErrorException;
+use App\Helpers\ResponseHelper;
 
-class InvalidValueException extends Exception
+class InvalidValueException extends ClientErrorException
 {
-	/**
-	 * @var array
-	 */
+	protected $code = ResponseHelper::BAD_REQUEST;
+
 	private array $errors = [];
 
-	/**
-	 * @param string $message
-	 */
 	public function setMessage(string $message): void
 	{
 		$this->message = $message;
 	}
 
-	/**
-	 * @param array $errors
-	 */
 	public function setErrors(array $errors): void
 	{
 		$this->errors = $errors;
 	}
 
-	/**
-	 * @return array
-	 */
 	public function getErrors(): array
 	{
 		return $this->errors;

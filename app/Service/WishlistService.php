@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use Apitte\Core\Exception\Api\ClientErrorException;
+use App\Helpers\ResponseHelper;
 use App\Model\Entity\User;
 use App\Model\Entity\Wishlist;
 use App\Model\Factory\WishlistFactory;
@@ -31,15 +33,12 @@ class WishlistService extends BaseService
 		return $this->repository->findAll();
 	}
 
-	/**
-	 * @throws EntityNotFoundException
-	 */
 	public function get(int $id): Wishlist
 	{
 		$wishlist = $this->repository->find($id);
 
 		if (!$wishlist instanceof Wishlist) {
-			throw new EntityNotFoundException();
+			throw new ClientErrorException("Wishlist not found", ResponseHelper::NOT_FOUND);
 		}
 
 		return $wishlist;
@@ -101,11 +100,25 @@ class WishlistService extends BaseService
 		return $wishlist->getProducts();
 	}
 
-	public function getActiveByUser(string $firebaseUid): Wishlist
+	public function getActiveByUser(string $firebaseUid): ?Wishlist
 	{
 		return $this->repository->findOneBy([
 			"owner" => $firebaseUid,
 			"active" => true,
 		]);
+	}
+
+	public function archive(int $id, User $user)
+	{
+		$wishlist = $this->get($id);
+
+		if ($wishlist->getOwner()->getId() !== $user->getId()) {
+			throw new ClientErrorException("Not your wishlist", ResponseHelper::BAD_REQUEST);
+		}
+
+		$wishlist->setActive(false);
+		$wishlist->setArchived(true);
+
+		$this->em->flush();
 	}
 }

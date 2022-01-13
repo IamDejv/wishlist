@@ -15,6 +15,7 @@ use Apitte\Core\Http\ApiResponse;
 use App\Enum\RequestEnum;
 use App\Enum\ResponseEnum;
 use App\Helpers\ResponseHelper;
+use App\Model\Entity\Wishlist;
 use App\Service\GroupService;
 use App\Service\ProductService;
 use App\Service\UserService;
@@ -305,6 +306,15 @@ class MeController extends BaseAuthController
 
 			$wishlist = $this->wishlistService->getActiveByUser($user->getId());
 
+			if (!$wishlist instanceof Wishlist) {
+				$wishlistVo = new WishlistValueObject();
+				$wishlistVo->user = $user->getId();
+				$wishlistVo->name = $user->getFirstname() . "'s Wishlist";
+				$wishlistVo->image = "/public/assets/christmas-1.jpg";
+				$wishlist = $this->wishlistService->create($wishlistVo, $user);
+				$wishlist->setActive(true);
+			}
+
 			$valueObject->setWishlistId($wishlist->getId());
 
 			$product = $this->productService->create($valueObject);
@@ -360,19 +370,15 @@ class MeController extends BaseAuthController
 	 */
 	public function create(ApiRequest $request, ApiResponse $response): ApiResponse
 	{
-		try {
-			/** @var WishlistValueObject $valueObject */
-			$valueObject = $this->getRequestEntity($request);
-			$owner = $request->getAttribute(RequestEnum::USER);
+		/** @var WishlistValueObject $valueObject */
+		$valueObject = $this->getRequestEntity($request);
+		$owner = $request->getAttribute(RequestEnum::USER);
 
-			$wishlist = $this->wishlistService->create($valueObject, $owner);
+		$wishlist = $this->wishlistService->create($valueObject, $owner);
 
-			return $response
-				->withAttribute(ResponseEnum::SINGLE, $wishlist)
-				->withStatus(ResponseHelper::OK);
-		} catch (Exception $e) {
-			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
-		}
+		return $response
+			->withAttribute(ResponseEnum::SINGLE, $wishlist)
+			->withStatus(ResponseHelper::OK);
 	}
 
 	/**
@@ -388,16 +394,12 @@ class MeController extends BaseAuthController
 	 */
 	public function getPendingFriends(ApiRequest $request, ApiResponse $response): ApiResponse
 	{
-		try {
-			$user = $request->getAttribute(RequestEnum::USER);
+		$user = $request->getAttribute(RequestEnum::USER);
 
-			$users = $this->userService->getPendingFriends($user);
+		$users = $this->userService->getPendingFriends($user);
 
-			return $response
-				->withAttribute(ResponseEnum::MULTIPLE, $users)
-				->withStatus(ResponseHelper::OK);
-		} catch (Exception $e) {
-			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
-		}
+		return $response
+			->withAttribute(ResponseEnum::MULTIPLE, $users)
+			->withStatus(ResponseHelper::OK);
 	}
 }

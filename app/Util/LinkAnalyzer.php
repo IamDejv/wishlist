@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace App\Util;
 
+use Apitte\Core\Exception\Api\ClientErrorException;
+use App\Helpers\ResponseHelper;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -12,7 +14,11 @@ class LinkAnalyzer
 	#[ArrayShape(["image" => "null|string", "name" => "string", "description" => "null|string"])]
 	public function analyze(string $link): array
 	{
-		$file = file_get_contents($link);
+		try {
+			$file = file_get_contents($link);
+		} catch (\Exception $exception) {
+			throw new ClientErrorException("No file found", ResponseHelper::NOT_FOUND, $exception);
+		}
 
 		$crawler = new Crawler($file);
 

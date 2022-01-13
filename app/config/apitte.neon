@@ -62,4 +62,7 @@ parameters:
 		-
 			uri: '/api/v*/public/bonjour'
 			type: 'GET'
+		-
+			uri: '/api/v*/public/sign-up'
+			type: 'POST'
 
