@@ -17,7 +17,7 @@ class WishlistHydrator implements HydratorInterface
 	/**
 	 * @param ValueObjectInterface|WishlistValueObject $valueObject
 	 * @param BaseEntity|null $entity
-	 * @return Product|null
+	 * @return Wishlist|null
 	 */
 	public function hydrate(ValueObjectInterface|WishlistValueObject $valueObject, ?BaseEntity $entity): ?Wishlist
 	{

@@ -35,7 +35,9 @@
   },
   "require-dev": {
     "nette/tester": "^2.3",
-    "symfony/thanks": "^1"
+    "symfony/thanks": "^1",
+    "phpunit/phpunit": "^9",
+    "ext-dom": "*"
   },
   "autoload": {
     "psr-4": {

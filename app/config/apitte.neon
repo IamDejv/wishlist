@@ -27,12 +27,14 @@ services:
 	decorator.response.responseMaper:
 		class: App\Decorator\Response\ResponseMapperDecorator
 		tags: [apitte.core.decorator: [priority: 60, type: handler.after]]
-	decorator.error.exception:
-		class: App\Decorator\Exception\ExceptionDecorator
-		tags: [apitte.core.decorator: [priority: 60, type: handler.after]]
 	decorator.request.pagination:
 		class: App\Decorator\Request\PaginationDecorator
 		tags: [apitte.core.decorator: [priority: 60, type: handler.after]]
+
+	api.core.errorHandler:
+		class: App\ErrorHandler\ErrorHandler
+		setup:
+			- setCatchException(not(%apitte.debug%))
 
 resource:
 	resources:
@@ -53,6 +55,8 @@ parameters:
 	endpointPrefixes:
 		public: '/api/v1/public'
 		private: '/api/v1'
+	apitte:
+		debug: false
 
 	privateEndpointExceptions:
 		-

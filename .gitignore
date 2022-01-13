@@ -81,6 +81,7 @@ www/images/products/*
 # Project settings
 
 app/config/local.neon
+app/config/test.neon
 app/config/.run-in-docker
 db/db_dump.sql
 /app/config/env/

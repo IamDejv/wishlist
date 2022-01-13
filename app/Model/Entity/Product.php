@@ -168,9 +168,16 @@ class Product extends BaseEntity
 		$this->reserved = $reserved;
 	}
 
-	#[Pure]
-	#[ArrayShape(["id" => "int", "name" => "string", "description" => "string", "url" => "null|string", "image" => "null|string", "price" => "float|null", "reserved" => "bool"])]
-	public function toArray(): array
+	#[ArrayShape([
+		"id" => "int",
+		"name" => "string",
+		"description" => "string",
+		"url" => "null|string",
+		"image" => "null|string",
+		"price" => "float|null",
+		"reserved" => "bool",
+		"owner" => "string"
+	])] public function toArray(): array
 	{
 		return [
 			"id" => $this->id,
@@ -180,6 +187,7 @@ class Product extends BaseEntity
 			"image" => $this->image,
 			"price" => $this->price,
 			"reserved" => $this->reserved,
+			"owner" => $this->getWishlist()->getOwner()->getId(),
 		];
 	}
 }

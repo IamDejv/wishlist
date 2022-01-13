@@ -34,3 +34,6 @@ recreate: ## Docker: recreate containers
 	chmod +x bin/*
 	chmod -R 0777 bin/*
 	bin/dc_recreate
+
+test: ## Run tests
+	bin/dc_exec_check "app/vendor/bin/phpunit app/tests"

@@ -1,8 +1,8 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Service;
-
 
 use App\Model\Entity\Friend;
 use App\Model\Entity\Group;
@@ -11,7 +11,9 @@ use App\Model\Entity\Wishlist;
 use App\Model\Factory\UserFactory;
 use App\Model\Hydrator\UserHydrator;
 use App\Model\Repository\FriendRepository;
+use App\Model\Repository\GroupRepository;
 use App\Model\Repository\UserRepository;
+use App\Model\Repository\WishlistRepository;
 use App\ValueObject\ActionFriendValueObject;
 use App\ValueObject\ActionGroupValueObject;
 use App\ValueObject\ActionWishlistValueObject;
@@ -31,13 +33,14 @@ class UserService extends BaseService
 {
 	public function __construct(
 		protected EntityManagerDecorator $em,
-		protected UserRepository         $repository,
-		private UserHydrator             $hydrator,
-		private Auth                     $firebaseAuthenticator,
-		private UserFactory              $factory,
-		private FriendRepository         $friendRepository,
-	)
-	{
+		protected UserRepository $repository,
+		private UserHydrator $hydrator,
+		private Auth $firebaseAuthenticator,
+		private UserFactory $factory,
+		private FriendRepository $friendRepository,
+		private WishlistRepository $wishlistRepository,
+		private GroupRepository $groupRepository
+	) {
 		parent::__construct($this->repository);
 	}
 
@@ -45,7 +48,6 @@ class UserService extends BaseService
 	 * @param UserValueObject $userValueObject
 	 * @param string $token
 	 * @return User
-	 *
 	 * @throws AuthException
 	 * @throws FirebaseException
 	 * @throws Exception
@@ -114,11 +116,15 @@ class UserService extends BaseService
 		if (isset($search)) {
 			$criteria
 				->where((new ExpressionBuilder())->contains("firstname", $search))
-				->orWhere((new ExpressionBuilder())->contains("lastname", $search))
-			;
+				->orWhere((new ExpressionBuilder())->contains("lastname", $search));
 		}
 
-		$users = $this->repository->findByCriteria($criteria, [], $paginator->getItemsPerPage(), $paginator->getOffset());
+		$users = $this->repository->findByCriteria(
+			$criteria,
+			[],
+			$paginator->getItemsPerPage(),
+			$paginator->getOffset()
+		);
 
 		return $users;
 	}
@@ -132,7 +138,14 @@ class UserService extends BaseService
 	public function getNotUserFriend(string $id, ?string $search, Paginator $paginator): array
 	{
 		$myFriends = $this->repository->findFriends($id);
-		$users = $this->repository->findUsers($id, $search, $myFriends, [], $paginator->getItemsPerPage(), $paginator->getOffset());
+		$users = $this->repository->findUsers(
+			$id,
+			$search,
+			$myFriends,
+			[],
+			$paginator->getItemsPerPage(),
+			$paginator->getOffset()
+		);
 
 		return $users;
 	}
@@ -263,10 +276,14 @@ class UserService extends BaseService
 		$action = $actionFriendValueObject->getAction();
 		if ($action === "remove") {
 			return $this->removeFriend($id, $actionFriendValueObject->getId());
-		} else if ($action === "add") {
-			return $this->addFriend($id, $actionFriendValueObject->getId());
-		} else if ($action === "confirm") {
-			return $this->confirmFriend($id, $actionFriendValueObject->getId());
+		} else {
+			if ($action === "add") {
+				return $this->addFriend($id, $actionFriendValueObject->getId());
+			} else {
+				if ($action === "confirm") {
+					return $this->confirmFriend($id, $actionFriendValueObject->getId());
+				}
+			}
 		}
 
 		return null;
@@ -279,7 +296,7 @@ class UserService extends BaseService
 	{
 		$user = $this->getById($id);
 
-		$updatedWishlist = $this->em->getRepository(Wishlist::class)->find($valueObject->getId());
+		$updatedWishlist = $this->wishlistRepository->find($valueObject->getId());
 
 		if (!$updatedWishlist instanceof Wishlist) {
 			throw new EntityNotFoundException("Wishlist not found");
@@ -293,9 +310,11 @@ class UserService extends BaseService
 					$wishlist->setActive(false);
 				}
 			}
-		} else if ($valueObject->getAction() === "setInactive") {
-			foreach ($user->getWishlists() as $wishlist) {
-				$wishlist->setActive(false);
+		} else {
+			if ($valueObject->getAction() === "setInactive") {
+				foreach ($user->getWishlists() as $wishlist) {
+					$wishlist->setActive(false);
+				}
 			}
 		}
 
@@ -314,7 +333,7 @@ class UserService extends BaseService
 	{
 		$user = $this->getById($id);
 
-		$updatedGroup = $this->em->getRepository(Group::class)->find($valueObject->getId());
+		$updatedGroup = $this->groupRepository->find($valueObject->getId());
 
 		if (!$updatedGroup instanceof Group) {
 			throw new EntityNotFoundException("Group not found");
@@ -328,9 +347,11 @@ class UserService extends BaseService
 					$group->setActive(false);
 				}
 			}
-		} else if ($valueObject->getAction() === "setInactive") {
-			foreach ($user->getGroups() as $group) {
-				$group->setActive(false);
+		} else {
+			if ($valueObject->getAction() === "setInactive") {
+				foreach ($user->getGroups() as $group) {
+					$group->setActive(false);
+				}
 			}
 		}
 
@@ -350,14 +371,14 @@ class UserService extends BaseService
 	 * @return User
 	 * @throws EntityNotFoundException
 	 */
-	private function confirmFriend(string $id, string $friendId): User
+	public function confirmFriend(string $id, string $friendId): User
 	{
 		$newFriend = $this->getById($friendId);
 
 		$user = $this->getById($id);
 
 		/** @var Friend $friendship */
-		$friendship = $this->em->getRepository(Friend::class)->findOneBy(
+		$friendship = $this->friendRepository->findOneBy(
 			[
 				"friend" => $user,
 				"user" => $newFriend,

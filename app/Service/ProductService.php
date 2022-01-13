@@ -3,7 +3,10 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use Apitte\Core\Exception\Api\ClientErrorException;
+use App\Helpers\ResponseHelper;
 use App\Model\Entity\Product;
+use App\Model\Entity\User;
 use App\Model\Factory\ProductFactory;
 use App\Model\Hydrator\ProductHydrator;
 use App\Model\Repository\ProductRepository;
@@ -96,5 +99,27 @@ class ProductService extends BaseService
 
 		$this->em->remove($product);
 		$this->em->flush();
+	}
+
+	public function reserve(int $id, User $user): Product
+	{
+		$product = $this->repository->find($id);
+
+		if (!$product instanceof Product) {
+			throw new ClientErrorException("Product not found", ResponseHelper::NOT_FOUND);
+		}
+
+		if ($product->isReserved()) {
+			throw new ClientErrorException("Product is already reserved", ResponseHelper::BAD_REQUEST);
+		}
+
+		if ($product->getWishlist()->getOwner()->getId() === $user->getId()) {
+			throw new ClientErrorException("You cannot reserve your product", ResponseHelper::BAD_REQUEST);
+		}
+
+		$product->setReserved(true);
+		$this->em->flush();
+
+		return $product;
 	}
 }

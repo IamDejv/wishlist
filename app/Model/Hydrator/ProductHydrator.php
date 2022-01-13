@@ -7,13 +7,14 @@ use App\Model\Entity\BaseEntity;
 use App\Model\Entity\Product;
 use App\Model\Entity\Wishlist;
 use App\Model\EntityManager;
+use App\Model\Repository\WishlistRepository;
 use App\ValueObject\ProductValueObject;
 use App\ValueObject\UpdateProductValueObject;
 use App\ValueObject\ValueObjectInterface;
 
 class ProductHydrator implements HydratorInterface
 {
-	public function __construct(private EntityManager $em)
+	public function __construct(private WishlistRepository $wishlistRepository)
 	{
 	}
 
@@ -29,7 +30,7 @@ class ProductHydrator implements HydratorInterface
 			$entity->setReserved(false);
 
 			// Wishlist must be set in creation process
-			$wishlist = $this->em->getRepository(Wishlist::class)->find($valueObject->getWishlistId());
+			$wishlist = $this->wishlistRepository->find($valueObject->getWishlistId());
 			$entity->setWishlist($wishlist);
 		}
 

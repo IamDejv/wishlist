@@ -14,7 +14,7 @@ class GroupHydrator implements HydratorInterface
 	/**
 	 * @param ValueObjectInterface|GroupValueObject $valueObject
 	 * @param BaseEntity|null $entity
-	 * @return Product|null
+	 * @return Group|null
 	 */
 	public function hydrate(ValueObjectInterface|GroupValueObject $valueObject, ?BaseEntity $entity): ?Group
 	{

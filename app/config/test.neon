@@ -1,0 +1,10 @@
+parameters:
+	mail:
+		- defaultAddresses: [david.kalianko@quanti.cz]
+		- dump: %isProduction%
+	isProduction: false
+	db:
+		host: "wish-db"
+		dbname: "wishlist"
+		user: "root"
+		password: "rootpasswd"

@@ -13,8 +13,10 @@ use Apitte\Core\Annotation\Controller\Responses;
 use Apitte\Core\Exception\Api\ClientErrorException;
 use Apitte\Core\Http\ApiRequest;
 use Apitte\Core\Http\ApiResponse;
+use App\Enum\RequestEnum;
 use App\Enum\ResponseEnum;
 use App\Helpers\ResponseHelper;
+use App\Model\Entity\User;
 use App\Service\ProductService;
 use App\ValueObject\ProductValueObject;
 use App\ValueObject\UpdateProductValueObject;
@@ -154,5 +156,33 @@ class ProductController extends BaseAuthController
 		} catch (Exception $e) {
 			throw new ClientErrorException($e->getMessage(), ResponseHelper::BAD_REQUEST, $e);
 		}
+	}
+
+	/**
+	 * @Path("/{id}/reserve")
+	 * @Method("PATCH")
+	 * @RequestParameters({
+	 * 		@RequestParameter(name="id", type="int")
+	 *})
+	 * @Responses({
+	 * 		@Response(code="200", description="Success")
+	 * })
+	 *
+	 * @param ApiRequest $request
+	 * @param ApiResponse $response
+	 * @return ApiResponse
+	 */
+	public function reserve(ApiRequest $request, ApiResponse $response): ApiResponse
+	{
+		$id = $request->getParameter('id');
+
+		/** @var User $user */
+		$user = $request->getAttribute(RequestEnum::USER);
+
+		$product = $this->service->reserve($id, $user);
+
+		return $response
+			->withAttribute(ResponseEnum::SINGLE, $product)
+			->withStatus(ResponseHelper::OK);
 	}
 }
