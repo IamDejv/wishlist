@@ -1,4 +1,4 @@
-Pro vývoj je nutné mít nainstalovaný composer a docker.
+Pro vývoj je nutné mít nainstalovaný composer, docker a docker-compose.
 
 ## Instalace
 
